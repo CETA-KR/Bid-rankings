@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0c1220">
+  <title>BID FESTIVAL | 실시간 리더보드</title>
+  <style>
+    :root{
+      --bg:#0a111e;--panel:#131f32;--panel2:#18283f;--line:#2a3c54;
+      --text:#f3f7ff;--muted:#96a8c2;--cyan:#68e1d6;--gold:#ffd36e;
+      --silver:#d4e0f3;--bronze:#e8a87d;--red:#ff8f99;--radius:20px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;color:var(--text);font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+      background:radial-gradient(ellipse 65% 40% at 80% -6%,#12435c 0%,transparent 70%),
+      radial-gradient(ellipse 55% 38% at 0% 65%,#152e44 0%,transparent 72%),var(--bg);min-height:100vh}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    button:disabled{cursor:not-allowed;opacity:.48}
+    button:focus-visible,input:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+    .app{width:min(1450px,calc(100% - 48px));margin:0 auto;padding:30px 0 65px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:35px}
+    .brand{display:flex;align-items:center;gap:12px;font-size:13px;letter-spacing:2px;font-weight:850}
+    .brand-logo{width:37px;height:37px;border:1px solid rgba(104,225,214,.65);border-radius:12px;
+      display:grid;place-items:center;color:var(--cyan);background:#173144;letter-spacing:0;font-size:21px}
+    .brand small{display:block;color:var(--muted);font-weight:650;letter-spacing:1.5px;font-size:10px;margin-top:3px}
+    .top-actions{display:flex;align-items:center;gap:10px}
+    .live{font-size:12px;font-weight:800;color:var(--cyan);display:flex;align-items:center;gap:8px;margin-right:10px}
+    .live-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 13px var(--cyan)}
+    .btn{color:var(--text);border:1px solid var(--line);background:#203249;border-radius:11px;padding:11px 16px;
+      font-weight:750;font-size:14px;transition:background .15s,transform .15s,border-color .15s}
+    .btn:hover:not(:disabled){background:#29415d;border-color:#47627d}
+    .btn:active:not(:disabled){transform:translateY(1px)}
+    .btn-main{background:var(--cyan);color:#08141f;border-color:var(--cyan)}
+    .btn-main:hover:not(:disabled){background:#a2faf2;border-color:#a2faf2}
+    .btn-quiet{background:transparent}
+    .btn-danger{color:var(--red);background:transparent;border-color:#6b3a4b}
+    .hero{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;margin-bottom:22px}
+    .eyebrow{color:var(--cyan);font-weight:850;font-size:12px;letter-spacing:3px;margin-bottom:9px}
+    h1{font-size:clamp(31px,5vw,65px);letter-spacing:-2.8px;line-height:1.07;margin:0 0 14px;font-weight:950}
+    h1 em{font-style:normal;color:var(--cyan)}
+    .subtitle{margin:0;color:var(--muted);font-size:15px;line-height:1.7}
+    .tabs{display:flex;gap:8px;padding:6px;border:1px solid var(--line);border-radius:15px;background:#101b2b;width:max-content;max-width:100%}
+    .tab{border:0;border-radius:10px;padding:14px 22px;background:transparent;color:var(--muted);font-weight:850;white-space:nowrap}
+    .tab[aria-selected="true"]{color:#092026;background:var(--cyan);box-shadow:0 5px 20px #47beba24}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0}
+    .stat{background:#132035b8;border:1px solid var(--line);border-radius:16px;padding:19px 23px}
+    .stat .label{color:var(--muted);font-size:13px;font-weight:650;margin-bottom:11px}
+    .stat strong{font-size:clamp(22px,2.9vw,29px);font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+    .stat strong.highlight{color:var(--cyan)}
+    .stat small{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:21px;align-items:start}
+    .left{min-width:0}
+    .panel{background:linear-gradient(145deg,#162338 0%,#111d2e 100%);border:1px solid var(--line);border-radius:var(--radius);padding:25px;margin-bottom:20px;box-shadow:0 14px 45px #00000012}
+    .panel-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+    .panel-title{font-size:21px;font-weight:900;margin:0;letter-spacing:-.6px}
+    .panel-sub{color:var(--muted);font-size:12px}
+    .podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:13px;min-height:257px}
+    .podium-card{--medal:var(--silver);min-height:207px;padding:22px 10px 19px;
+      text-align:center;border:1px solid var(--line);border-radius:16px;
+      background:linear-gradient(165deg,#243349,#182538);display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .podium-card.first{--medal:var(--gold);min-height:252px;background:linear-gradient(165deg,#453c2d,#1e2b3a);border-color:#7e6b4a}
+    .podium-card.third{--medal:var(--bronze);min-height:195px;background:linear-gradient(165deg,#3a3132,#182537)}
+    .medal{width:59px;height:59px;flex:none;border:2px solid var(--medal);color:var(--medal);display:grid;place-items:center;
+      border-radius:50%;background:#101c2c;font-size:27px;font-weight:950;margin-bottom:14px}
+    .podium-rank{font-size:11px;color:var(--medal);font-weight:900;letter-spacing:1px;margin-bottom:11px}
+    .podium-name{font-size:clamp(14px,1.9vw,19px);font-weight:900;max-width:100%;overflow-wrap:anywhere;margin-bottom:11px}
+    .podium-time{font-weight:900;font-variant-numeric:tabular-nums;font-size:clamp(15px,2vw,23px);letter-spacing:-.7px}
+    .podium-prize{font-size:12px;color:var(--muted);margin-top:9px;max-width:100%;overflow-wrap:anywhere}
+    .empty-name{color:var(--muted);font-weight:700}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;text-align:left;min-width:525px}
+    th{text-align:left;padding:0 12px 16px;color:var(--muted);font-size:12px;font-weight:700}
+    td{border-top:1px solid var(--line);padding:17px 12px;font-size:14px}
+    th:first-child,td:first-child{padding-left:4px}
+    .rank{font-weight:900;color:var(--muted)}
+    .rank.top{color:var(--gold)}
+    .team{font-weight:850;overflow-wrap:anywhere;max-width:250px}
+    .time{font-variant-numeric:tabular-nums;font-weight:900;color:var(--cyan);white-space:nowrap}
+    .prize-pill{display:inline-block;border:1px solid #4c6075;padding:6px 9px;border-radius:9px;color:var(--silver);font-size:12px;max-width:160px;overflow-wrap:anywhere}
+    .row-actions{display:flex;gap:8px;white-space:nowrap}
+    .mini-btn{background:transparent;border:1px solid #3f566f;color:var(--muted);border-radius:7px;padding:6px 9px;font-size:12px}
+    .mini-btn:hover{color:white;border-color:var(--cyan)}
+    .mini-btn.del:hover{color:var(--red);border-color:var(--red)}
+    .table-empty{text-align:center;color:var(--muted);padding:47px 10px;font-size:14px}
+    .side .panel{padding:22px}
+    .side .panel-title{font-size:18px}
+    .clock{font-weight:950;letter-spacing:-2px;font-size:clamp(37px,4vw,50px);font-variant-numeric:tabular-nums;text-align:center;
+      color:white;background:#0d1726;border:1px solid #29425c;border-radius:14px;margin-bottom:15px;padding:21px 10px;line-height:1.2}
+    .clock.is-running{color:var(--cyan);border-color:#388e91}
+    .clock-buttons{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+    .clock-buttons .btn{padding:12px 7px}
+    .field{display:block;margin:0 0 12px}
+    .field span{display:block;color:var(--muted);font-size:12px;font-weight:750;margin-bottom:8px}
+    .field input{width:100%;background:#0d1827;border:1px solid #395069;border-radius:10px;padding:13px 12px;color:var(--text);outline:none}
+    .field input:focus{border-color:var(--cyan)}
+    input::placeholder{color:#637c96}
+    .full{width:100%}
+    .tip{font-size:12px;line-height:1.6;color:var(--muted);margin:11px 0 0}
+    .divider{height:1px;background:var(--line);margin:18px 0}
+    .prize-field{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;margin-bottom:10px}
+    .prize-field label{font-size:13px;font-weight:900;color:var(--gold)}
+    .prize-field input{width:100%;min-width:0;padding:10px 11px;background:#0d1827;color:white;border:1px solid #395069;border-radius:9px}
+    .prize-field input:focus{outline:2px solid var(--cyan)}
+    .helper-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .helper-buttons .btn{font-size:12px;padding:11px 7px}
+    .note{color:var(--muted);font-size:12px;line-height:1.7;margin:14px 0 0}
+    .accent-text{color:var(--cyan)}
+    .footer{color:#8296b0;text-align:center;font-size:12px;margin-top:34px;line-height:1.7}
+    .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#d6f8f2;color:#0e242a;
+      padding:13px 20px;border-radius:12px;max-width:min(90vw,440px);text-align:center;font-size:14px;font-weight:800;
+      box-shadow:0 12px 36px #0008;z-index:99;opacity:0;pointer-events:none;transition:.2s}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    .hide{display:none!important}
+    .presentation .operator-only{display:none!important}
+    .presentation .layout{grid-template-columns:1fr}
+    .presentation .app{max-width:1600px}
+    .presentation .podium{min-height:310px}
+    .presentation .podium-card{min-height:260px}
+    .presentation .podium-card.first{min-height:310px}
+    .presentation .podium-card.third{min-height:240px}
+    .presentation .podium-name{font-size:clamp(19px,2.8vw,32px)}
+    .presentation .podium-time{font-size:clamp(22px,3vw,35px)}
+    .presentation .stats{margin-top:27px}
+    .presentation .row-actions,.presentation th.actions-col,.presentation .footer-admin{display:none!important}
+    @media(max-width:1100px){.layout{grid-template-columns:minmax(0,1fr) 320px}.panel{padding:18px}.side .panel{padding:18px}.podium{gap:7px}}
+    @media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.side .panel{margin:0}.side .panel:first-child{grid-row:span 2}.hero{display:block}.tabs{margin-top:24px}.stats{margin:18px 0}.presentation .side{display:none}}
+    @media(max-width:590px){.app{width:calc(100% - 28px);padding:20px 0 45px}.topbar{margin-bottom:30px}.top-actions{width:100%;justify-content:space-between}.live{margin-right:auto}.top-actions .btn{font-size:12px;padding:9px 10px}
+      h1{letter-spacing:-1.5px}.subtitle{font-size:13px}.tabs{width:100%}.tab{width:50%;padding:13px 7px;font-size:13px}.stats{gap:8px}.stat{padding:14px 12px}.stat .label{font-size:11px}.stat strong{font-size:20px}.stat small{font-size:10px}.podium{gap:6px;min-height:195px}.podium-card{padding:11px 5px;min-height:156px}.podium-card.first{min-height:194px}.podium-card.third{min-height:147px}.medal{width:44px;height:44px;font-size:21px;margin-bottom:9px}.podium-rank{font-size:10px;margin-bottom:8px}.podium-name{font-size:12px}.podium-time{font-size:13px}.podium-prize{font-size:10px}.panel-title{font-size:17px}.side{display:block}.side .panel{margin-bottom:15px}.presentation .podium-card{min-height:180px}.presentation .podium-card.first{min-height:220px}.presentation .podium-card.third{min-height:166px}.presentation .podium-name{font-size:14px}.presentation .podium-time{font-size:15px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="brand-logo">B</span><div>BID SCIENCE CLUB<small>FESTIVAL 2026 · CHALLENGE BOARD</small></div></div>
+    <div class="top-actions">
+      <span class="live"><span class="live-dot"></span> LIVE LEADERBOARD</span>
+      <button id="presentationBtn" class="btn btn-quiet" type="button">◫ 표시 모드</button>
+      <button id="fullscreenBtn" class="btn btn-quiet" type="button">⛶ 전체화면</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">THE FASTEST TEAM WINS</div>
+      <h1>실험실 <em>챌린지</em></h1>
+      <p class="subtitle"><span id="eventDescription">잠긴 실험실을 가장 빨리 탈출한 팀은?</span> 기록이 등록되면 순위와 상품이 자동으로 업데이트돼.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="종목 선택">
+      <button class="tab" data-event="escape" role="tab" aria-selected="true">🔐 방탈출</button>
+      <button class="tab" data-event="stirling" role="tab" aria-selected="false">⚙️ 스털링 엔진 레이스</button>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="경기 통계">
+    <div class="stat"><div class="label">참가 팀</div><strong id="teamCount">0</strong><small>현재 종목 기준</small></div>
+    <div class="stat"><div class="label">최고 기록</div><strong class="highlight" id="bestTime">--:--.--</strong><small>가장 짧은 시간</small></div>
+    <div class="stat"><div class="label">현재 선두</div><strong id="leaderName">-</strong><small>실시간 1위</small></div>
+  </section>
+
+  <div class="layout">
+    <main class="left">
+      <section class="panel" aria-labelledby="podiumTitle">
+        <div class="panel-heading"><h2 class="panel-title" id="podiumTitle">명예의 TOP 3</h2><span class="panel-sub">순위 기준 · 소요 시간 ↑</span></div>
+        <div id="podium" class="podium"></div>
+      </section>
+      <section class="panel" aria-labelledby="rankTitle">
+        <div class="panel-heading"><h2 class="panel-title" id="rankTitle">전체 순위</h2><span class="panel-sub" id="listCount">0개 기록</span></div>
+        <div class="table-wrap"><table aria-label="참가팀 기록 순위">
+          <thead><tr><th scope="col">순위</th><th scope="col">팀 / 참가자</th><th scope="col">기록</th><th scope="col">상품</th><th class="actions-col operator-only" scope="col">관리</th></tr></thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table></div>
+      </section>
+    </main>
+
+    <aside class="side operator-only" aria-label="진행요원용 관리 도구">
+      <section class="panel">
+        <div class="panel-heading"><h2 class="panel-title">⏱ 스톱워치</h2><span class="panel-sub">진행요원 전용</span></div>
+        <div class="clock" id="timerDisplay" aria-label="스톱워치 시간">00:00.00</div>
+        <div class="clock-buttons">
+          <button class="btn btn-main" type="button" id="timerStart">시작</button>
+          <button class="btn" type="button" id="timerPause">정지</button>
+          <button class="btn btn-quiet" type="button" id="timerReset">초기화</button>
+        </div>
+        <label class="field"><span>팀 이름 / 닉네임</span><input id="stopwatchName" maxlength="30" autocomplete="off" placeholder="예: 유전자 수사대"></label>
+        <button id="saveTimerBtn" type="button" class="btn btn-main full">이 시간으로 기록 등록</button>
+        <p class="tip">스톱워치를 정지하지 않아도 등록할 수 있어. 등록하면 해당 시점의 기록이 저장되고 타이머가 초기화돼.</p>
+        <div class="divider"></div>
+        <h3 style="font-size:16px;margin:0 0 16px">수동 기록 입력</h3>
+        <label class="field"><span>팀 이름 / 닉네임</span><input id="manualName" maxlength="30" autocomplete="off" placeholder="예: 효소 탐정단"></label>
+        <label class="field"><span>소요 시간</span><input id="manualTime" inputmode="decimal" autocomplete="off" placeholder="예: 02:35.42 또는 155.42"></label>
+        <button id="manualSaveBtn" type="button" class="btn full">기록 직접 추가</button>
+        <button id="cancelEditBtn" type="button" class="btn btn-quiet full hide" style="margin-top:8px">수정 취소</button>
+        <p class="tip">분:초.소수점 또는 초.소수점 형식으로 입력하면 돼. 예: 01:20.50 = 80.5초.</p>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><h2 class="panel-title">🎁 순위별 상품</h2><span class="panel-sub">종목별 개별 설정</span></div>
+        <div id="prizeFields"></div>
+        <p class="tip">상품 이름을 수정하면 리더보드에도 바로 반영돼. 동시간 기록은 공동 순위로 처리해.</p>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><h2 class="panel-title">⚙ 기록 관리</h2></div>
+        <div class="helper-buttons">
+          <button class="btn" id="csvBtn" type="button">CSV 내려받기</button>
+          <button class="btn" id="exportBtn" type="button">백업 저장</button>
+          <button class="btn" id="importBtn" type="button">백업 불러오기</button>
+          <button class="btn btn-danger" id="clearBtn" type="button">종목 기록 삭제</button>
+        </div>
+        <input class="hide" id="importFile" type="file" accept=".json,application/json">
+        <p class="note"><span class="accent-text">자동 저장:</span> 기록은 이 브라우저에 저장돼. <b>다른 컴퓨터나 휴대폰과 자동 동기화되지는 않아.</b> 여러 기기를 옮겨 쓸 때는 백업 저장/불러오기를 이용해 줘.</p>
+      </section>
+    </aside>
+  </div>
+  <footer class="footer">BID SCIENCE CLUB · SCIENCE FESTIVAL 2026 <span class="footer-admin">| 운영 PC에서 직접 관리하는 로컬 리더보드</span></footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  'use strict';
+  const STORAGE_KEY = 'bid-festival-leaderboard-v1';
+  const EVENT_NAMES = {escape:'방탈출',stirling:'스털링 엔진 레이스'};
+  const defaultState = () => ({
+    version:1,
+    records:{escape:[],stirling:[]},
+    prizes:{escape:['1등 상품 입력','2등 상품 입력','3등 상품 입력'],stirling:['1등 상품 입력','2등 상품 입력','3등 상품 입력']}
+  });
+  const $ = id => document.getElementById(id);
+  let state = load();
+  let eventKey = 'escape';
+  let editingId = null;
+  let raf = null;
+  let toastTimeout;
+  const clocks = {
+    escape:{running:false,elapsed:0,startedAt:0},
+    stirling:{running:false,elapsed:0,startedAt:0}
+  };
+
+  function load(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if(saved) return validateState(saved);
+    } catch(e) { console.warn('Saved data could not be loaded:',e); }
+    return defaultState();
+  }
+  function validateState(input){
+    if(!input || typeof input !== 'object' || !input.records || !input.prizes) throw Error('올바르지 않은 백업 파일이야.');
+    const clean = defaultState();
+    for(const ev of Object.keys(EVENT_NAMES)){
+      if(!Array.isArray(input.records[ev])) throw Error('종목 기록을 읽을 수 없어.');
+      clean.records[ev] = input.records[ev].slice(0,5000).map(r=>{
+        if(!r || typeof r.name !== 'string' || !Number.isSafeInteger(r.ms) || r.ms <= 0 || r.ms > 86400000) return null;
+        const name = r.name.trim().slice(0,30);
+        if(!name) return null;
+        return {id: String(r.id || makeId()),name,ms:r.ms,createdAt:typeof r.createdAt==='string'?r.createdAt:new Date().toISOString()};
+      }).filter(Boolean);
+      if(!Array.isArray(input.prizes[ev])) throw Error('상품 설정을 읽을 수 없어.');
+      clean.prizes[ev] = [0,1,2].map(i=>String(input.prizes[ev][i] ?? `${i+1}등 상품 입력`).slice(0,35));
+    }
+    return clean;
+  }
+  function save(){
+    try { localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
+    catch(e) { notify('저장 공간 오류! CSV 또는 백업으로 데이터를 보관해 줘.'); }
+  }
+  function makeId(){return (globalThis.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}
+  function notify(message){
+    const toast=$('toast'); toast.textContent=message;toast.classList.add('show');
+    clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>toast.classList.remove('show'),2800);
+  }
+  function formatTime(ms){
+    const cs=Math.floor(ms/10);
+    const hours=Math.floor(cs/360000),mins=Math.floor(cs/6000)%60,secs=Math.floor(cs/100)%60,part=cs%100;
+    const pad = n=>String(n).padStart(2,'0');
+    return hours ? `${pad(hours)}:${pad(mins)}:${pad(secs)}.${pad(part)}` : `${pad(mins)}:${pad(secs)}.${pad(part)}`;
+  }
+  function parseTime(str){
+    const value=str.trim();
+    if(!/^\d+(?::\d{1,2}){0,2}(?:\.\d{1,2})?$/.test(value)) return null;
+    const segments=value.split(':');
+    if(segments.length>1 && segments.slice(1).some(s=>Number.parseInt(s,10)>=60)) return null;
+    const parts=segments.map(Number);
+    const seconds=parts.reduce((acc,v)=>acc*60+v,0);
+    const ms=Math.round(seconds*100)*10;
+    return ms>0 && ms<=86400000 ? ms : null;
+  }
+  function ranked(){
+    let lastMs=null,lastRank=0;
+    return [...state.records[eventKey]].sort((a,b)=>a.ms-b.ms || a.createdAt.localeCompare(b.createdAt))
+      .map((r,i)=>{
+        const rank=r.ms===lastMs?lastRank:i+1;
+        lastMs=r.ms;lastRank=rank;
+        return {...r,rank,prize:rank<=3?state.prizes[eventKey][rank-1]:'-'};
+      });
+  }
+  function makeNode(tag, className, content){
+    const node=document.createElement(tag);if(className)node.className=className;
+    if(content!==undefined)node.textContent=String(content);
+    return node;
+  }
+  function renderPodium(rows){
+    const area=$('podium');area.replaceChildren();
+    for(const position of [2,1,3]){
+      const result=rows[position-1];
+      const card=makeNode('div',`podium-card ${position===1?'first':position===3?'third':''}`);
+      card.append(makeNode('div','medal',position));
+      card.append(makeNode('div','podium-rank',`POSITION ${result?.rank || position}`));
+      card.append(makeNode('div',result?'podium-name':'podium-name empty-name',result?.name||'아직 기록 없음'));
+      card.append(makeNode('div','podium-time',result?formatTime(result.ms):'--:--.--'));
+      card.append(makeNode('div','podium-prize',result?(result.rank<=3?`${result.rank}등 · ${result.prize}`:'참가상'):''));
+      area.append(card);
+    }
+  }
+  function renderTable(rows){
+    const body=$('leaderboardBody');body.replaceChildren();
+    if(rows.length===0){
+      const tr=makeNode('tr');const td=makeNode('td','table-empty','첫 번째 참가팀의 기록을 등록해 줘!');
+      td.colSpan=5;tr.append(td);body.append(tr);return;
+    }
+    for(const item of rows){
+      const tr=makeNode('tr');
+      tr.append(makeNode('td',`rank ${item.rank<=3?'top':''}`,`${item.rank}위`));
+      tr.append(makeNode('td','team',item.name));
+      tr.append(makeNode('td','time',formatTime(item.ms)));
+      const prizeTd=makeNode('td');
+      if(item.rank<=3)prizeTd.append(makeNode('span','prize-pill',item.prize));
+      else prizeTd.textContent='-';
+      tr.append(prizeTd);
+      const actions=makeNode('td','row-actions operator-only');
+      const edit=makeNode('button','mini-btn','수정');edit.type='button';edit.dataset.editId=item.id;
+      const del=makeNode('button','mini-btn del','삭제');del.type='button';del.dataset.deleteId=item.id;
+      actions.append(edit,del);tr.append(actions);body.append(tr);
+    }
+  }
+  function render(){
+    const rows=ranked();
+    $('teamCount').textContent=rows.length.toLocaleString('ko-KR');
+    $('bestTime').textContent=rows.length?formatTime(rows[0].ms):'--:--.--';
+    $('leaderName').textContent=rows.length?rows[0].name:'-';
+    $('listCount').textContent=`${rows.length}개 기록`;
+    renderPodium(rows);renderTable(rows);
+    $('eventDescription').textContent=eventKey==='escape'
+      ?'잠긴 실험실을 가장 빨리 탈출한 팀은? 기록이 등록되면 순위와 상품이 자동으로 업데이트돼.'
+      :'엔진을 이용해 누가 가장 먼저 완주할까? 빠른 기록부터 순위를 매겨 보자.';
+  }
+  function renderPrizeEditor(){
+    const container=$('prizeFields');container.replaceChildren();
+    for(let i=0;i<3;i++){
+      const row=makeNode('div','prize-field');
+      const label=makeNode('label','',`${i+1}등`);
+      const input=makeNode('input');input.type='text';input.maxLength=35;
+      input.value=state.prizes[eventKey][i];input.id=`prize-${i}`;label.htmlFor=input.id;
+      input.addEventListener('input',()=>{
+        state.prizes[eventKey][i]=input.value;save();render();
+      });
+      row.append(label,input);container.append(row);
+    }
+  }
+  function getElapsed(c){return c.elapsed+(c.running?performance.now()-c.startedAt:0)}
+  function tick(){
+    const clock=clocks[eventKey];
+    $('timerDisplay').textContent=formatTime(getElapsed(clock));
+    $('timerDisplay').classList.toggle('is-running',clock.running);
+    $('timerStart').disabled=clock.running;
+    $('timerPause').disabled=!clock.running;
+    raf=requestAnimationFrame(tick);
+  }
+  function startClock(){const clock=clocks[eventKey];if(clock.running)return;clock.startedAt=performance.now();clock.running=true}
+  function pauseClock(){const clock=clocks[eventKey];if(!clock.running)return;clock.elapsed=getElapsed(clock);clock.running=false}
+  function resetClock(){const clock=clocks[eventKey];clock.running=false;clock.elapsed=0;clock.startedAt=0}
+  function switchEvent(next){
+    eventKey=next;editingId=null;resetManualForm();
+    document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.event===eventKey)));
+    $('stopwatchName').value='';renderPrizeEditor();render();
+  }
+  function addRecord(name,ms){
+    name=name.trim();
+    if(!name || name.length>30){notify('팀 이름을 1~30자로 입력해 줘.');return false}
+    if(!Number.isSafeInteger(ms)||ms<=0||ms>86400000){notify('올바른 소요 시간을 입력해 줘.');return false}
+    const existing=state.records[eventKey].find(x=>x.name.toLocaleLowerCase()===name.toLocaleLowerCase());
+    if(existing){
+      if(ms>=existing.ms){notify('이미 같은 팀의 더 빠른 기록이 있어. 수정 버튼을 이용해 줘.');return false}
+      if(!confirm(`${name}의 기존 기록 ${formatTime(existing.ms)}을(를) 더 빠른 ${formatTime(ms)}(으)로 교체할까?`))return false;
+      existing.ms=ms;existing.createdAt=new Date().toISOString();
+    } else {
+      state.records[eventKey].push({id:makeId(),name,ms,createdAt:new Date().toISOString()});
+    }
+    save();render();notify(`${name} · ${formatTime(ms)} 기록 완료!`);return true;
+  }
+  function resetManualForm(){
+    $('manualName').value='';$('manualTime').value='';
+    $('manualSaveBtn').textContent='기록 직접 추가';$('cancelEditBtn').classList.add('hide');editingId=null;
+  }
+  function saveManual(){
+    const name=$('manualName').value.trim(),ms=parseTime($('manualTime').value);
+    if(ms===null){notify('시간 형식을 확인해 줘. 예: 02:35.42');return}
+    if(editingId){
+      const entry=state.records[eventKey].find(x=>x.id===editingId);
+      if(!entry){resetManualForm();notify('수정할 기록을 찾지 못했어.');return}
+      if(!name||name.length>30){notify('팀 이름을 1~30자로 입력해 줘.');return}
+      if(state.records[eventKey].some(x=>x.id!==editingId&&x.name.toLocaleLowerCase()===name.toLocaleLowerCase())){notify('이미 사용 중인 팀 이름이야.');return}
+      entry.name=name;entry.ms=ms;save();resetManualForm();render();notify('기록을 수정했어.');return;
+    }
+    if(addRecord(name,ms))resetManualForm();
+  }
+  function download(filename, content, type){
+    const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function csvCell(str){const value=String(str); const safe=/^[=+\-@\t\r]/.test(value)?"'"+value:value; return `"${safe.replace(/"/g,'""')}"`}
+  function saveCsv(){
+    const rows=ranked();
+    const records=[['순위','종목','팀 이름','소요 시간','밀리초','상품'],
+      ...rows.map(r=>[r.rank,EVENT_NAMES[eventKey],r.name,formatTime(r.ms),r.ms,r.rank<=3?r.prize:''])];
+    const csv='\ufeff'+records.map(row=>row.map(csvCell).join(',')).join('\r\n');
+    download(`BID_${eventKey}_leaderboard.csv`,csv,'text/csv;charset=utf-8');notify('CSV를 저장했어.');
+  }
+  async function importBackup(file){
+    if(!file)return;
+    try {
+      if(file.size>2_000_000)throw Error('백업 파일이 너무 커.');
+      const data=validateState(JSON.parse(await file.text()));
+      if(!confirm('현재 두 종목의 모든 기록과 상품 설정을 백업 내용으로 교체할까?'))return;
+      state=data;save();resetClock();resetManualForm();renderPrizeEditor();render();notify('백업을 불러왔어!');
+    } catch(e){notify(e.message||'백업 파일을 확인할 수 없어.');}
+    finally{$('importFile').value=''}
+  }
+  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchEvent(b.dataset.event)));
+  $('timerStart').addEventListener('click',startClock);
+  $('timerPause').addEventListener('click',pauseClock);
+  $('timerReset').addEventListener('click',()=>{if(getElapsed(clocks[eventKey])>0&&!confirm('현재 스톱워치 시간을 초기화할까?'))return;resetClock()});
+  $('saveTimerBtn').addEventListener('click',()=>{
+    const c=clocks[eventKey],ms=Math.floor(getElapsed(c)/10)*10;
+    if(addRecord($('stopwatchName').value,ms)){resetClock();$('stopwatchName').value=''}
+  });
+  $('manualSaveBtn').addEventListener('click',saveManual);
+  $('cancelEditBtn').addEventListener('click',resetManualForm);
+  $('manualTime').addEventListener('keydown',e=>{if(e.key==='Enter')saveManual()});
+  $('leaderboardBody').addEventListener('click',e=>{
+    const edit=e.target.closest('[data-edit-id]'),del=e.target.closest('[data-delete-id]');
+    if(edit){
+      const item=state.records[eventKey].find(x=>x.id===edit.dataset.editId);if(!item)return;
+      editingId=item.id;$('manualName').value=item.name;$('manualTime').value=formatTime(item.ms);
+      $('manualSaveBtn').textContent='수정 내용 저장';$('cancelEditBtn').classList.remove('hide');
+      $('manualName').focus();$('manualName').scrollIntoView({behavior:'smooth',block:'center'});
+    }
+    if(del){
+      const item=state.records[eventKey].find(x=>x.id===del.dataset.deleteId);if(!item)return;
+      if(!confirm(`「${item.name}」의 ${formatTime(item.ms)} 기록을 삭제할까?`))return;
+      state.records[eventKey]=state.records[eventKey].filter(x=>x.id!==item.id);
+      if(editingId===item.id)resetManualForm();save();render();notify('기록을 삭제했어.');
+    }
+  });
+  $('csvBtn').addEventListener('click',saveCsv);
+  $('exportBtn').addEventListener('click',()=>{download(`BID_festival_backup_${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(state,null,2),'application/json');notify('전체 데이터 백업을 저장했어.')});
+  $('importBtn').addEventListener('click',()=>$('importFile').click());
+  $('importFile').addEventListener('change',e=>importBackup(e.target.files?.[0]));
+  $('clearBtn').addEventListener('click',()=>{
+    if(!state.records[eventKey].length){notify('삭제할 기록이 없어.');return}
+    if(!confirm(`${EVENT_NAMES[eventKey]}의 기록 ${state.records[eventKey].length}개를 모두 삭제할까? 다른 종목의 기록은 남아.`))return;
+    state.records[eventKey]=[];save();resetManualForm();render();notify('이 종목의 기록을 모두 삭제했어.');
+  });
+  $('presentationBtn').addEventListener('click',()=>{
+    const on=document.body.classList.toggle('presentation');
+    $('presentationBtn').textContent=on?'◫ 관리 모드':'◫ 표시 모드';
+  });
+  $('fullscreenBtn').addEventListener('click',async()=>{
+    try {if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}
+    catch(e){notify('이 브라우저에서는 전체화면을 지원하지 않을 수 있어.')}
+  });
+  document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent=document.fullscreenElement?'⛶ 전체화면 해제':'⛶ 전체화면'});
+  switchEvent('escape');tick();
+})();
+</script>
+</body>
+</html>
