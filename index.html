@@ -115,6 +115,18 @@
     .toast.show{opacity:1;transform:translate(-50%,0)}
     .hide{display:none!important}
     .presentation .operator-only{display:none!important}
+    body:not(.operator-auth) .operator-only{display:none!important}
+    .sync-pill{font-size:12px;color:var(--muted);font-weight:750;display:inline-flex;align-items:center;gap:7px}
+    .sync-pill::before{content:"";display:inline-block;width:8px;height:8px;background:var(--red);border-radius:100%}
+    .sync-pill.online{color:var(--cyan)}.sync-pill.online::before{background:var(--cyan)}
+    .login-shade{position:fixed;inset:0;z-index:200;background:#000b;display:grid;place-items:center;padding:16px}
+    .login-box{background:#172439;border:1px solid #3f5970;padding:26px;border-radius:18px;max-width:420px;width:100%;box-shadow:0 30px 75px #0009}
+    .login-box h2{margin:0 0 8px;font-size:24px}.login-box p{font-size:13px;color:var(--muted);line-height:1.6}
+    .login-box input{width:100%;padding:13px;border:1px solid #486179;background:#0b1728;border-radius:10px;color:white;margin:7px 0}
+    .login-actions{display:flex;gap:10px;margin-top:14px}.login-actions>*{flex:1}
+    .migrate-panel{margin-top:15px;background:#102b35;border:1px solid #2b6574;padding:14px;border-radius:11px}
+    .migrate-panel .btn{margin-top:10px;width:100%}
+    .presentation .login-shade{display:none!important}
     .presentation .layout{grid-template-columns:1fr}
     .presentation .app{max-width:1600px}
     .presentation .podium{min-height:310px}
@@ -202,7 +214,8 @@
   <header class="topbar">
     <div class="brand"><span class="brand-logo">B</span><div>BID SCIENCE CLUB<small>FESTIVAL 2026 · CHALLENGE BOARD</small></div></div>
     <div class="top-actions">
-      <span class="live"><span class="live-dot"></span> LIVE LEADERBOARD</span>
+      <span id="syncStatus" class="sync-pill" aria-live="polite">Firebase 연결 중</span>
+      <button id="authBtn" class="btn btn-quiet" type="button">운영요원 로그인</button>
       <button id="presentationBtn" class="btn btn-quiet" type="button">◫ 표시 모드</button>
       <button id="fullscreenBtn" class="btn btn-quiet" type="button">⛶ 전체화면</button>
     </div>
@@ -306,11 +319,26 @@
           <button class="btn btn-danger" id="clearBtn" type="button">종목 기록 삭제</button>
         </div>
         <input class="hide" id="importFile" type="file" accept=".json,application/json">
-        <p class="note"><span class="accent-text">자동 저장:</span> 기록은 이 브라우저에 저장돼. <b>다른 컴퓨터나 휴대폰과 자동 동기화되지는 않아.</b> 여러 기기를 옮겨 쓸 때는 백업 저장/불러오기를 이용해 줘.</p>
+        <p class="note"><span class="accent-text">실시간 동기화:</span> 모든 기기가 Firebase의 동일한 순위와 대기표를 사용해. 다른 운영요원이 변경한 내용도 이 화면에 반영돼.</p>
+        <p class="note" id="operatorUid"></p>
+        <div id="migrationPanel" class="migrate-panel hide">
+          <strong>이전 브라우저 기록 발견</strong>
+          <p class="note">예전 로컬 데이터를 Firebase로 옮길 수 있어. 서버에 이미 기록이 있다면 덮어쓰지 않아.</p>
+          <button type="button" class="btn" id="migrateBtn">이전 기록을 Firebase로 가져오기</button>
+        </div>
       </section>
     </aside>
   </div>
-  <footer class="footer">BID SCIENCE CLUB · SCIENCE FESTIVAL 2026 <span class="footer-admin">| 운영 PC에서 직접 관리하는 로컬 리더보드</span></footer>
+  <footer class="footer">BID SCIENCE CLUB · SCIENCE FESTIVAL 2026 <span class="footer-admin">| Firebase 운영요원 모드</span></footer>
+</div>
+<div id="loginShade" class="login-shade hide" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <form class="login-box" id="loginForm">
+    <h2 id="loginTitle">운영요원 로그인</h2>
+    <p>기록 입력과 대기표 변경은 허용된 운영요원만 가능해. Firebase Authentication에 만든 계정으로 로그인해.</p>
+    <label class="field"><span>이메일</span><input type="email" id="loginEmail" required autocomplete="username" placeholder="operator@example.com"></label>
+    <label class="field"><span>비밀번호</span><input type="password" id="loginPassword" required autocomplete="current-password" placeholder="비밀번호"></label>
+    <div class="login-actions"><button class="btn btn-main" type="submit" id="loginSubmit">로그인</button><button class="btn" type="button" id="loginCancel">취소</button></div>
+  </form>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
@@ -337,6 +365,21 @@
   });
   const $ = id => document.getElementById(id);
   let state = load();
+  // 이전 버전의 로컬 기록은 최초 접속 시에만 따로 보관. 클라우드에 자동 업로드하지 않음.
+  const LEGACY_KEY = 'bid-festival-pre-firebase-backup-v1';
+  let legacyState = structuredClone(state);
+  try {
+    const backup = localStorage.getItem(LEGACY_KEY);
+    if(backup) legacyState = validateState(JSON.parse(backup));
+  } catch (err) { console.warn('예전 기록 백업을 읽을 수 없어',err); }
+  const legacyHasData = Object.values(legacyState.records).some(rows=>rows.length) || Object.values(legacyState.queues).some(q=>q.active||q.waiting.length);
+  if(legacyHasData) {
+    try { if(!localStorage.getItem(LEGACY_KEY))localStorage.setItem(LEGACY_KEY,JSON.stringify(legacyState)); }
+    catch(err){ console.warn('예전 기록 별도 백업 실패',err); }
+  }
+  let lastWrittenState = structuredClone(state);
+  let serverEmpty = false, cloudReady = false, connected = false, currentUser = null;
+  let firebase = null;
   let eventKey = 'escape';
   let selectedView = 'escape';
   let editingId = null;
@@ -367,7 +410,7 @@
         if(!r || typeof r.name!=='string') return null;
         const name=r.name.trim().slice(0,30);
         if(!name) return null;
-        const base={id:String(r.id||makeId()),name,createdAt:typeof r.createdAt==='string'?r.createdAt:new Date().toISOString()};
+        const base={id:String(r.id||makeId()).replace(/[.#$\/\[\]\x00-\x1f\x7f]/g,'_').slice(0,100),name,createdAt:typeof r.createdAt==='string'?r.createdAt:new Date().toISOString()};
         const type=EVENT_META[ev].type;
         const val=recordValue(ev,r);
         if(typeof val!=='number' || !Number.isFinite(val))return null;
@@ -386,7 +429,7 @@
       const normalize = r => {
         if(!r || typeof r.name!=='string') return null;
         const name=r.name.trim().slice(0,30);
-        return name?{id:String(r.id||makeId()),name,createdAt:typeof r.createdAt==='string'?r.createdAt:new Date().toISOString()}:null;
+        return name?{id:String(r.id||makeId()).replace(/[.#$\/\[\]\x00-\x1f\x7f]/g,'_').slice(0,100),name,createdAt:typeof r.createdAt==='string'?r.createdAt:new Date().toISOString()}:null;
       };
       clean.queues[ev].active = normalize(source.active);
       const entries=Array.isArray(source.waiting)?source.waiting.slice(0,500):[];
@@ -405,9 +448,75 @@
     }
     return clean;
   }
-  function save(){
+  function persistLocal(){
     try { localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
-    catch(e) { notify('저장 공간 오류! CSV 또는 백업으로 데이터를 보관해 줘.'); }
+    catch(e) { console.warn('로컬 백업 저장 실패',e); }
+  }
+  function normalizeCloud(raw){
+    const base=defaultState();
+    if(!raw || typeof raw!=='object')return base;
+    const shaped={...base,...raw,records:{},prizes:{},queues:raw.queues||{},queueEnabled:raw.queueEnabled||{}};
+    for(const ev of Object.keys(EVENT_NAMES)){
+      const entries=raw.records?.[ev];
+      shaped.records[ev]=Array.isArray(entries)?entries:(entries&&typeof entries==='object'?Object.values(entries):[]);
+      const awards=raw.prizes?.[ev];
+      shaped.prizes[ev]=Array.isArray(awards)?awards:(awards&&typeof awards==='object'?[0,1,2].map(i=>awards[i]??base.prizes[ev][i]):base.prizes[ev]);
+    }
+    return validateState(shaped);
+  }
+  function serializeCloud(input){
+    return {version:4,
+      records:Object.fromEntries(Object.keys(EVENT_NAMES).map(ev=>[ev,Object.fromEntries(input.records[ev].map(r=>[r.id,r]))])),
+      queues:input.queues,queueEnabled:input.queueEnabled,prizes:input.prizes};
+  }
+  function syncUI(){
+    if(selectedView!=='queue'&&selectedView!=='overview')render();
+    renderQueue();renderOverview();
+    if(!document.activeElement?.closest('#prizeFields'))renderPrizeEditor();
+  }
+  function authEnabled(){return cloudReady && connected && Boolean(currentUser) && firebase}
+  function refreshConnection(){
+    const online=cloudReady&&connected;
+    const badge=$('syncStatus');
+    badge.classList.toggle('online',online);
+    badge.textContent=!connected?'오프라인 / 연결 중':(!cloudReady?'데이터 읽는 중':`실시간 연결됨${currentUser?' · 운영 중':' · 보기 전용'}`);
+    $('authBtn').textContent=currentUser?'로그아웃':'운영요원 로그인';
+    document.body.classList.toggle('operator-auth',Boolean(authEnabled()));
+    $('operatorUid').textContent=currentUser?`운영요원 UID: ${currentUser.uid} · 실제 수정 권한은 Firebase Rules에서 결정돼.`:'';
+    $('migrationPanel').classList.toggle('hide',!(legacyHasData && serverEmpty && authEnabled()));
+  }
+  function onCloudSnapshot(raw){
+    serverEmpty=raw===null || (typeof raw==='object'&&Object.keys(raw).length===0);
+    try{
+      state=normalizeCloud(raw);cloudReady=true;
+      lastWrittenState=structuredClone(state);
+      persistLocal();refreshConnection();syncUI();
+    }catch(err){console.error(err);notify('서버 데이터 형식에 문제가 있어. 관리자에게 알려 줘.')}
+  }
+  function onFirebaseProblem(error){
+    console.error('Firebase 오류:',error);
+    const code=error?.code||'';
+    notify(code.includes('permission')?'Firebase Rules에서 읽기/쓰기 권한을 확인해 줘.':'Firebase 연결/저장 오류 · 인터넷과 콘솔 설정을 확인해 줘.');
+    if(!cloudReady)$('syncStatus').textContent='연결 실패 · 설정 확인';
+  }
+  function save(){
+    if(!authEnabled()){notify('로그인 또는 실시간 연결 상태를 확인해 줘.');return}
+    const before=lastWrittenState,patch={};
+    for(const ev of Object.keys(EVENT_NAMES)){
+      const previous=new Map(before.records[ev].map(r=>[r.id,r]));
+      const next=new Map(state.records[ev].map(r=>[r.id,r]));
+      for(const [id,item] of next){if(JSON.stringify(item)!==JSON.stringify(previous.get(id)))patch[`records/${ev}/${id}`]=item}
+      for(const id of previous.keys()){if(!next.has(id))patch[`records/${ev}/${id}`]=null}
+      if(before.queueEnabled[ev]!==state.queueEnabled[ev])patch[`queueEnabled/${ev}`]=state.queueEnabled[ev];
+      for(let i=0;i<3;i++)if(before.prizes[ev][i]!==state.prizes[ev][i])patch[`prizes/${ev}/${i}`]=state.prizes[ev][i];
+    }
+    if(!Object.keys(patch).length)return;
+    lastWrittenState=structuredClone(state);
+    persistLocal();
+    firebase.writePatch(patch).catch(err=>{
+      onFirebaseProblem(err);
+      firebase.reload().then(raw=>onCloudSnapshot(raw)).catch(onFirebaseProblem);
+    });
   }
   function makeId(){return (globalThis.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}
   function notify(message){
@@ -724,13 +833,27 @@
   }
   async function importBackup(file){
     if(!file)return;
-    try {
+    try{
+      if(!authEnabled())throw Error('운영요원 로그인과 온라인 연결이 필요해.');
       if(file.size>2_000_000)throw Error('백업 파일이 너무 커.');
       const data=validateState(JSON.parse(await file.text()));
-      if(!confirm('현재 다섯 종목의 기록·상품·대기 명단을 백업 내용으로 교체할까?'))return;
-      state=data;save();resetClock();resetManualForm();renderPrizeEditor();render();renderQueue();renderOverview();notify('백업을 불러왔어!');
-    } catch(e){notify(e.message||'백업 파일을 확인할 수 없어.');}
+      if(!confirm('주의: Firebase의 전체 5종목 기록·상품·대기표를 백업 내용으로 교체해. 다른 운영요원에게도 즉시 적용할까?'))return;
+      await firebase.replaceAll(serializeCloud(data));
+      resetClock();resetManualForm();notify('Firebase에 백업을 반영했어!');
+    }catch(e){notify(e.message||'백업 파일을 확인할 수 없어.');}
     finally{$('importFile').value=''}
+  }
+  async function changeQueue(ev,operation){
+    if(!authEnabled()){notify('운영요원 로그인 후 변경할 수 있어.');return}
+    try{
+      const result=await firebase.queueAction(ev,operation);
+      if(!result.committed){notify('다른 운영요원이 먼저 변경했거나 요청을 적용할 수 없어.');return}
+      if(operation.type==='add')notify(`${EVENT_NAMES[ev]} · ${operation.name} 대기 등록!`);
+      if(operation.type==='call')notify(`${EVENT_NAMES[ev]} · 다음 팀 호출!`);
+      if(operation.type==='finish')notify(`${EVENT_NAMES[ev]} · 진행 종료!`);
+      if(operation.type==='remove')notify('대기 명단에서 삭제했어.');
+      if(operation.type==='rename')notify('이름을 수정했어.');
+    }catch(err){onFirebaseProblem(err)}
   }
   $('queueSwitches').addEventListener('change',e=>{
     const input=e.target.closest('[data-queue-toggle]');if(!input)return;
@@ -744,15 +867,8 @@
     if(!Object.prototype.hasOwnProperty.call(EVENT_NAMES,ev)||!state.queueEnabled[ev])return;
     const name=form.elements.team.value.trim();
     if(!name || name.length>30){notify('팀 이름을 1~30자로 입력해 줘.');return}
-    const queue=state.queues[ev];
-    if([queue.active,...queue.waiting].some(r=>r&&r.name.toLocaleLowerCase()===name.toLocaleLowerCase())){
-      notify('이 종목의 대기/진행 명단에 같은 이름이 있어.');return;
-    }
-    queue.waiting.push({id:makeId(),name,createdAt:new Date().toISOString()});
-    save();renderQueue();
-    const newInput=$('queueGrid').querySelector(`[data-queue-form="${ev}"] input`);
-    if(newInput)newInput.focus();
-    notify(`${EVENT_NAMES[ev]} · ${name} 대기 등록!`);
+    form.elements.team.value='';
+    changeQueue(ev,{type:'add',name,id:makeId(),createdAt:new Date().toISOString()});
   });
   $('queueGrid').addEventListener('click',e=>{
     const button=e.target.closest('[data-queue-action]');if(!button)return;
@@ -760,37 +876,24 @@
     if(!Object.prototype.hasOwnProperty.call(state.queues,ev)||!state.queueEnabled[ev])return;
     const queue=state.queues[ev];
     const index=queue.waiting.findIndex(x=>x.id===id);
-    if(action==='call'){
-      if(!queue.waiting.length)return;
-      queue.active=queue.waiting.shift();
-      notify(`${EVENT_NAMES[ev]} · ${queue.active.name} 팀 호출!`);
-    }else if(action==='finish'){
-      if(!queue.active)return;
-      const name=queue.active.name;queue.active=null;
-      notify(`${name} 팀 진행 종료!`);
-    }else if(action==='up'||action==='down'){
+    if(action==='call'){if(!queue.waiting.length)return;changeQueue(ev,{type:'call'});return}
+    if(action==='finish'){if(!queue.active)return;changeQueue(ev,{type:'finish'});return}
+    if(action==='up'||action==='down'){
       if(index<0)return;
-      const to=index+(action==='up'?-1:1);
-      if(to<0||to>=queue.waiting.length)return;
-      [queue.waiting[index],queue.waiting[to]]=[queue.waiting[to],queue.waiting[index]];
-    }else if(action==='remove'){
+      changeQueue(ev,{type:action,id});return;
+    }
+    if(action==='remove'){
+      if(index<0 || !confirm(`「${queue.waiting[index].name}」을(를) ${EVENT_NAMES[ev]} 대기 명단에서 삭제할까?`))return;
+      changeQueue(ev,{type:'remove',id});return;
+    }
+    if(action==='rename'){
       if(index<0)return;
-      const name=queue.waiting[index].name;
-      if(!confirm(`「${name}」을(를) ${EVENT_NAMES[ev]} 대기 명단에서 삭제할까?`))return;
-      queue.waiting.splice(index,1);notify('대기 명단에서 삭제했어.');
-    }else if(action==='rename'){
-      if(index<0)return;
-      const previous=queue.waiting[index].name;
-      const entered=prompt('새 팀 이름을 입력해 줘.',previous);
+      const entered=prompt('새 팀 이름을 입력해 줘.',queue.waiting[index].name);
       if(entered===null)return;
       const name=entered.trim();
       if(!name||name.length>30){notify('팀 이름을 1~30자로 입력해 줘.');return}
-      if([queue.active,...queue.waiting].some(r=>r&&r.id!==id&&r.name.toLocaleLowerCase()===name.toLocaleLowerCase())){
-        notify('이미 등록된 팀 이름이야.');return;
-      }
-      queue.waiting[index].name=name;
-    }else{return}
-    save();renderQueue();
+      changeQueue(ev,{type:'rename',id,name});
+    }
   });
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchEvent(b.dataset.event)));
   $('timerStart').addEventListener('click',startClock);
@@ -837,16 +940,109 @@
     catch(e){notify('이 브라우저에서는 전체화면을 지원하지 않을 수 있어.')}
   });
   document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent=document.fullscreenElement?'⛶ 전체화면 해제':'⛶ 전체화면'});
-  window.addEventListener('storage',e=>{
-    if(e.key!==STORAGE_KEY)return;
-    try{state=e.newValue?validateState(JSON.parse(e.newValue)):defaultState();
-      if(selectedView!=='queue'&&selectedView!=='overview')render();
-      renderPrizeEditor();renderQueue();renderOverview();
-      notify('같은 브라우저의 다른 탭에서 변경한 내용을 반영했어.');
-    }catch(err){console.warn('동기화 실패:',err)}
+  $('authBtn').addEventListener('click',async()=>{
+    if(currentUser){try{await firebase.logout();notify('로그아웃했어.')}catch(err){onFirebaseProblem(err)}}
+    else{$('loginShade').classList.remove('hide');$('loginEmail').focus()}
   });
+  $('loginCancel').addEventListener('click',()=>$('loginShade').classList.add('hide'));
+  $('loginShade').addEventListener('click',e=>{if(e.target===$('loginShade'))$('loginShade').classList.add('hide')});
+  $('loginForm').addEventListener('submit',async e=>{
+    e.preventDefault();if(!firebase)return;
+    $('loginSubmit').disabled=true;
+    try{
+      await firebase.login($('loginEmail').value.trim(),$('loginPassword').value);
+      $('loginShade').classList.add('hide');$('loginPassword').value='';notify('로그인했어. Firebase Rules에서 UID 쓰기 권한을 확인해 줘.');
+    }catch(err){onFirebaseProblem(err);notify('로그인 실패 · 이메일/비밀번호와 Authentication 설정을 확인해 줘.')}
+    finally{$('loginSubmit').disabled=false}
+  });
+  $('migrateBtn').addEventListener('click',async()=>{
+    if(!authEnabled()||!serverEmpty)return;
+    if(!confirm('기존 로컬 기록을 빈 Firebase DB로 올릴까? 다른 기기에서도 이 기록을 볼 수 있게 돼.'))return;
+    try{
+      const result=await firebase.seedIfEmpty(serializeCloud(legacyState));
+      notify(result.committed?'기존 기록을 Firebase로 옮겼어!':'서버에 이미 기록이 있어서 덮어쓰지 않았어.');
+    }catch(err){onFirebaseProblem(err)}
+  });
+  window.BID_FIREBASE_HANDLERS={
+    ready(api){firebase=api;refreshConnection()},
+    snapshot:onCloudSnapshot,
+    auth(user){currentUser=user;refreshConnection()},
+    connection(value){connected=value;refreshConnection()},
+    error:onFirebaseProblem
+  };
   switchEvent('escape');renderOverview();renderQueue();tick();
 })();
+</script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
+import { getDatabase, ref, onValue, update, set, get, runTransaction } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+// Firebase 웹 설정값은 공개 클라이언트 설정이야. 실제 수정 권한은 DB Rules로 보호해야 해.
+const firebaseConfig = {
+  apiKey: 'AIzaSyCixeoayk5Ycrwx9Lmek5DHQAR3WeMXMmo',
+  authDomain: 'bid-rankings.firebaseapp.com',
+  databaseURL: 'https://bid-rankings-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId: 'bid-rankings',
+  storageBucket: 'bid-rankings.firebasestorage.app',
+  messagingSenderId: '150663477053',
+  appId: '1:150663477053:web:47278fdabad39a7d27f754'
+};
+const handlers=window.BID_FIREBASE_HANDLERS;
+try{
+  const app=initializeApp(firebaseConfig),db=getDatabase(app),auth=getAuth(app);
+  const root=ref(db,'festival');
+  const rootQueue=ev=>ref(db,`festival/queues/${ev}`);
+  const normalQueue=raw=>{
+    const q=raw&&typeof raw==='object'?raw:{};
+    return {active:q.active&&typeof q.active==='object'?q.active:null,
+      waiting:Array.isArray(q.waiting)?q.waiting.filter(Boolean):[]};
+  };
+  const queueAction=async(ev,op)=>{
+    return runTransaction(rootQueue(ev),raw=>{
+      const q=normalQueue(raw);
+      const i=q.waiting.findIndex(x=>x.id===op.id);
+      if(op.type==='add'){
+        const lower=op.name.toLocaleLowerCase();
+        if([q.active,...q.waiting].some(x=>x&&x.name.toLocaleLowerCase()===lower))return;
+        if(q.waiting.length>=500)return;
+        q.waiting.push({id:op.id,name:op.name,createdAt:op.createdAt});
+      }else if(op.type==='call'){
+        if(!q.waiting.length)return;
+        q.active=q.waiting.shift();
+      }else if(op.type==='finish'){
+        if(!q.active)return;
+        q.active=null;
+      }else if(op.type==='up'||op.type==='down'){
+        const dest=i+(op.type==='up'?-1:1);
+        if(i<0||dest<0||dest>=q.waiting.length)return;
+        [q.waiting[i],q.waiting[dest]]=[q.waiting[dest],q.waiting[i]];
+      }else if(op.type==='remove'){
+        if(i<0)return;
+        q.waiting.splice(i,1);
+      }else if(op.type==='rename'){
+        if(i<0)return;
+        if([q.active,...q.waiting].some(x=>x&&x.id!==op.id&&x.name.toLocaleLowerCase()===op.name.toLocaleLowerCase()))return;
+        q.waiting[i].name=op.name;
+      }else return;
+      return q;
+    },{applyLocally:false});
+  };
+  handlers.ready({
+    login:(email,password)=>signInWithEmailAndPassword(auth,email,password),
+    logout:()=>signOut(auth),
+    writePatch:patch=>update(root,patch),
+    queueAction,
+    replaceAll:payload=>set(root,payload),
+    reload:async()=>{const s=await get(root);return s.val()},
+    seedIfEmpty:payload=>runTransaction(root,existing=>{
+      if(existing!==null && existing!==undefined && Object.keys(existing).length>0)return;
+      return payload;
+    },{applyLocally:false})
+  });
+  onAuthStateChanged(auth,user=>handlers.auth(user?{uid:user.uid,email:user.email}:null),handlers.error);
+  onValue(ref(db,'.info/connected'),snap=>handlers.connection(Boolean(snap.val())),handlers.error);
+  onValue(root,snap=>handlers.snapshot(snap.val()),handlers.error);
+}catch(err){handlers.error(err)}
 </script>
 </body>
 </html>
