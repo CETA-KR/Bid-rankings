@@ -125,10 +125,53 @@
     .presentation .podium-time{font-size:clamp(22px,3vw,35px)}
     .presentation .stats{margin-top:27px}
     .presentation .row-actions,.presentation th.actions-col,.presentation .footer-admin{display:none!important}
+    /* Three-event waiting board */
+    .queue-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0 20px}
+    .queue-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+    .queue-card{min-width:0;border:1px solid var(--line);border-radius:20px;background:linear-gradient(160deg,#182a42,#101b2d);overflow:hidden;box-shadow:0 14px 45px #00000018}
+    .queue-head{padding:23px 22px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .queue-title{font-size:clamp(17px,1.7vw,21px);font-weight:950;letter-spacing:-.5px;margin:0}
+    .queue-count{color:var(--cyan);background:#103b43;border:1px solid #235d66;border-radius:100px;padding:7px 12px;font-size:12px;font-weight:850;white-space:nowrap}
+    .queue-body{padding:20px 20px 15px}
+    .queue-label{color:var(--muted);font-size:11px;font-weight:900;letter-spacing:1px;margin-bottom:9px}
+    .queue-current{border:1px solid #397c80;border-radius:15px;padding:16px;background:linear-gradient(105deg,#173c49,#183044);margin-bottom:18px;min-height:99px}
+    .queue-current .queue-person{font-size:clamp(18px,2vw,26px);font-weight:950;color:#a0fff1;overflow-wrap:anywhere;line-height:1.4}
+    .queue-current.is-idle{background:#132338;border-color:#34465e}
+    .queue-current.is-idle .queue-person{font-size:16px;color:var(--muted)}
+    .queue-next{margin-bottom:14px;padding:14px 15px;border:1px solid #645638;background:#272b32;border-radius:13px;min-height:77px}
+    .queue-next strong{font-size:17px;color:var(--gold);overflow-wrap:anywhere;display:block}
+    .queue-next.is-empty{border-color:var(--line);background:#132034}
+    .queue-next.is-empty strong{color:var(--muted);font-size:14px}
+    .queue-list-head{font-size:13px;font-weight:850;display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+    .queue-list{display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto}
+    .queue-item{border:1px solid #2b4059;border-radius:11px;padding:11px 12px;background:#132238;display:flex;align-items:center;gap:11px;min-width:0}
+    .queue-number{color:var(--cyan);font-size:12px;font-weight:950;min-width:24px}
+    .queue-name{font-size:14px;font-weight:800;overflow-wrap:anywhere;flex:1;min-width:0}
+    .queue-row-ctrl{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+    .queue-row-ctrl .mini-btn{font-size:11px;padding:5px 7px}
+    .queue-empty{color:var(--muted);font-size:13px;text-align:center;padding:28px 8px;border:1px dashed #35506a;border-radius:11px}
+    .queue-manage{padding:17px 20px 20px;background:#101d2f;border-top:1px solid var(--line)}
+    .queue-entry{display:flex;gap:8px;align-items:stretch;margin-bottom:10px}
+    .queue-entry input{min-width:0;flex:1;color:white;background:#0d1827;border:1px solid #395069;border-radius:10px;padding:12px}
+    .queue-entry .btn{padding:10px 14px;white-space:nowrap}
+    .queue-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .queue-actions .btn{padding:11px 7px;font-size:12px}
+    .queue-info{font-size:12px;color:var(--muted);line-height:1.6;margin:16px 3px 0}
+    .queue-info b{color:#c9e8e8}
+    .presentation .queue-grid{gap:19px}
+    .presentation .queue-card{min-height:350px}
+    .presentation .queue-head{padding:26px 24px}
+    .presentation .queue-body{padding:25px}
+    .presentation .queue-current{min-height:115px}
+    .presentation .queue-current .queue-person{font-size:clamp(21px,2.4vw,36px)}
+    .presentation .queue-item{padding:15px 14px}
+    .presentation .queue-name{font-size:clamp(15px,1.6vw,22px)}
+    @media(max-width:1050px){.queue-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:690px){.queue-grid{grid-template-columns:1fr}.queue-summary{gap:8px}.queue-summary .stat{padding:14px 12px}.queue-summary .stat strong{font-size:20px}.queue-summary .stat .label{font-size:11px}}
     @media(max-width:1100px){.layout{grid-template-columns:minmax(0,1fr) 320px}.panel{padding:18px}.side .panel{padding:18px}.podium{gap:7px}}
     @media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.side .panel{margin:0}.side .panel:first-child{grid-row:span 2}.hero{display:block}.tabs{margin-top:24px}.stats{margin:18px 0}.presentation .side{display:none}}
     @media(max-width:590px){.app{width:calc(100% - 28px);padding:20px 0 45px}.topbar{margin-bottom:30px}.top-actions{width:100%;justify-content:space-between}.live{margin-right:auto}.top-actions .btn{font-size:12px;padding:9px 10px}
-      h1{letter-spacing:-1.5px}.subtitle{font-size:13px}.tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}.tab{width:auto;min-width:0;white-space:normal;padding:13px 7px;font-size:13px}.tab:last-child{grid-column:1/-1}.stats{gap:8px}.stat{padding:14px 12px}.stat .label{font-size:11px}.stat strong{font-size:20px}.stat small{font-size:10px}.podium{gap:6px;min-height:195px}.podium-card{padding:11px 5px;min-height:156px}.podium-card.first{min-height:194px}.podium-card.third{min-height:147px}.medal{width:44px;height:44px;font-size:21px;margin-bottom:9px}.podium-rank{font-size:10px;margin-bottom:8px}.podium-name{font-size:12px}.podium-time{font-size:13px}.podium-prize{font-size:10px}.panel-title{font-size:17px}.side{display:block}.side .panel{margin-bottom:15px}.presentation .podium-card{min-height:180px}.presentation .podium-card.first{min-height:220px}.presentation .podium-card.third{min-height:166px}.presentation .podium-name{font-size:14px}.presentation .podium-time{font-size:15px}}
+      h1{letter-spacing:-1.5px}.subtitle{font-size:13px}.tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}.tab{width:auto;min-width:0;white-space:normal;padding:13px 7px;font-size:13px}.tab:last-child{grid-column:auto}.stats{gap:8px}.stat{padding:14px 12px}.stat .label{font-size:11px}.stat strong{font-size:20px}.stat small{font-size:10px}.podium{gap:6px;min-height:195px}.podium-card{padding:11px 5px;min-height:156px}.podium-card.first{min-height:194px}.podium-card.third{min-height:147px}.medal{width:44px;height:44px;font-size:21px;margin-bottom:9px}.podium-rank{font-size:10px;margin-bottom:8px}.podium-name{font-size:12px}.podium-time{font-size:13px}.podium-prize{font-size:10px}.panel-title{font-size:17px}.side{display:block}.side .panel{margin-bottom:15px}.presentation .podium-card{min-height:180px}.presentation .podium-card.first{min-height:220px}.presentation .podium-card.third{min-height:166px}.presentation .podium-name{font-size:14px}.presentation .podium-time{font-size:15px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
   </style>
 </head>
@@ -153,16 +196,27 @@
       <button class="tab" data-event="escape" role="tab" aria-selected="true">🔐 방탈출</button>
       <button class="tab" data-event="stirling" role="tab" aria-selected="false">⚙️ 스털링 엔진 레이스</button>
       <button class="tab" data-event="hematocrit" role="tab" aria-selected="false">🩸 해마토크릿</button>
+      <button class="tab" data-event="queue" role="tab" aria-selected="false">📋 통합 대기실</button>
     </div>
   </section>
 
-  <section class="stats" aria-label="경기 통계">
+  <section class="stats" id="rankStats" aria-label="경기 통계">
     <div class="stat"><div class="label">참가 팀</div><strong id="teamCount">0</strong><small>현재 종목 기준</small></div>
     <div class="stat"><div class="label">최고 기록</div><strong class="highlight" id="bestTime">--:--.--</strong><small id="recordCriterion">가장 짧은 시간</small></div>
     <div class="stat"><div class="label">현재 선두</div><strong id="leaderName">-</strong><small>실시간 1위</small></div>
   </section>
 
-  <div class="layout">
+  <section id="queueView" class="queue-view hide" aria-label="세 종목 통합 대기 현황">
+    <div class="queue-summary" aria-label="통합 대기실 통계">
+      <div class="stat"><div class="label">전체 대기 팀</div><strong class="highlight" id="totalWaiting">0</strong><small>세 종목 합계</small></div>
+      <div class="stat"><div class="label">현재 진행 중</div><strong id="totalActive">0 / 3</strong><small>진행 중인 종목 수</small></div>
+      <div class="stat"><div class="label">접수된 팀</div><strong id="totalQueued">0</strong><small>대기 + 진행 중</small></div>
+    </div>
+    <div class="queue-grid" id="queueGrid"></div>
+    <p class="queue-info operator-only">진행요원은 각 종목 아래에서 팀을 등록하고 순서를 조정할 수 있어. <b>다음 팀 호출</b>을 누르면 기존 진행 팀은 종료되고 맨 앞 대기 팀이 시작해.</p>
+  </section>
+
+  <div class="layout" id="rankView">
     <main class="left">
       <section class="panel" aria-labelledby="podiumTitle">
         <div class="panel-heading"><h2 class="panel-title" id="podiumTitle">명예의 TOP 3</h2><span class="panel-sub" id="rankingRule">순위 기준 · 소요 시간 ↑</span></div>
@@ -226,13 +280,15 @@
   const STORAGE_KEY = 'bid-festival-leaderboard-v1';
   const EVENT_NAMES = {escape:'방탈출',stirling:'스털링 엔진 레이스',hematocrit:'해마토크릿'};
   const defaultState = () => ({
-    version:2,
+    version:3,
     records:{escape:[],stirling:[],hematocrit:[]},
+    queues:{escape:{active:null,waiting:[]},stirling:{active:null,waiting:[]},hematocrit:{active:null,waiting:[]}},
     prizes:{escape:['1등 상품 입력','2등 상품 입력','3등 상품 입력'],stirling:['1등 상품 입력','2등 상품 입력','3등 상품 입력'],hematocrit:['1등 상품 입력','2등 상품 입력','3등 상품 입력']}
   });
   const $ = id => document.getElementById(id);
   let state = load();
   let eventKey = 'escape';
+  let selectedView = 'escape';
   let editingId = null;
   let raf = null;
   let toastTimeout;
@@ -270,6 +326,25 @@
         return {...base,ms:r.ms};
       }).filter(Boolean);
       clean.prizes[ev]=[0,1,2].map(i=>String(sourcePrizes[i]??`${i+1}등 상품 입력`).slice(0,35));
+    }
+    // Preserve queued teams when importing new backups; older backups simply get empty queues.
+    for(const ev of Object.keys(EVENT_NAMES)){
+      const source = input.queues && input.queues[ev];
+      if(!source || typeof source!=='object') continue;
+      const normalize = r => {
+        if(!r || typeof r.name!=='string') return null;
+        const name=r.name.trim().slice(0,30);
+        return name?{id:String(r.id||makeId()),name,createdAt:typeof r.createdAt==='string'?r.createdAt:new Date().toISOString()}:null;
+      };
+      clean.queues[ev].active = normalize(source.active);
+      const entries=Array.isArray(source.waiting)?source.waiting.slice(0,500):[];
+      const seen=new Set();
+      if(clean.queues[ev].active)seen.add(clean.queues[ev].active.name.toLocaleLowerCase());
+      for(const r of entries){
+        const item=normalize(r);if(!item)continue;
+        const key=item.name.toLocaleLowerCase();if(seen.has(key))continue;
+        seen.add(key);clean.queues[ev].waiting.push(item);
+      }
     }
     return clean;
   }
@@ -414,10 +489,77 @@
   function startClock(){const clock=clocks[eventKey];if(!clock||clock.running)return;clock.startedAt=performance.now();clock.running=true}
   function pauseClock(){const clock=clocks[eventKey];if(!clock||!clock.running)return;clock.elapsed=getElapsed(clock);clock.running=false}
   function resetClock(){const clock=clocks[eventKey];if(!clock)return;clock.running=false;clock.elapsed=0;clock.startedAt=0}
+  function makeQueueButton(text,action,ev,id,extra=''){
+    const button=makeNode('button',`mini-btn ${extra}`,text);button.type='button';
+    button.dataset.queueAction=action;button.dataset.queueEvent=ev;
+    if(id)button.dataset.queueId=id;
+    return button;
+  }
+  function renderQueue(){
+    const waitingCount=Object.values(state.queues).reduce((sum,q)=>sum+q.waiting.length,0);
+    const activeCount=Object.values(state.queues).filter(q=>q.active).length;
+    $('totalWaiting').textContent=String(waitingCount);
+    $('totalActive').textContent=`${activeCount} / 3`;
+    $('totalQueued').textContent=String(waitingCount+activeCount);
+    const grid=$('queueGrid');grid.replaceChildren();
+    for(const ev of Object.keys(EVENT_NAMES)){
+      const queue=state.queues[ev];
+      const card=makeNode('section','queue-card');
+      card.setAttribute('aria-label',`${EVENT_NAMES[ev]} 대기 현황`);
+      const head=makeNode('div','queue-head');
+      const title=makeNode('h2','queue-title',`${ev==='escape'?'🔐':ev==='stirling'?'⚙️':'🩸'} ${EVENT_NAMES[ev]}`);
+      head.append(title,makeNode('span','queue-count',`대기 ${queue.waiting.length}팀`));
+      const body=makeNode('div','queue-body');
+      const current=makeNode('div',`queue-current ${queue.active?'':'is-idle'}`);
+      current.append(makeNode('div','queue-label','● 현재 진행 중'));
+      current.append(makeNode('div','queue-person',queue.active?.name||'현재 진행 중인 팀 없음'));
+      body.append(current);
+      const next=makeNode('div',`queue-next ${queue.waiting.length?'':'is-empty'}`);
+      next.append(makeNode('div','queue-label','NEXT · 다음 순서'));
+      next.append(makeNode('strong','',queue.waiting[0]?.name||'대기 중인 팀 없음'));
+      body.append(next);
+      body.append(makeNode('div','queue-list-head',`전체 대기 순서 · ${queue.waiting.length}팀`));
+      const list=makeNode('div','queue-list');
+      if(!queue.waiting.length){list.append(makeNode('div','queue-empty','아직 대기하는 팀이 없어.'))}
+      queue.waiting.forEach((r,i)=>{
+        const item=makeNode('div','queue-item');
+        item.append(makeNode('span','queue-number',`#${i+1}`),makeNode('span','queue-name',r.name));
+        const controls=makeNode('div','queue-row-ctrl operator-only');
+        const up=makeQueueButton('↑','up',ev,r.id);up.title='한 칸 앞으로';up.disabled=i===0;
+        const down=makeQueueButton('↓','down',ev,r.id);down.title='한 칸 뒤로';down.disabled=i===queue.waiting.length-1;
+        const edit=makeQueueButton('수정','rename',ev,r.id);
+        const del=makeQueueButton('삭제','remove',ev,r.id,'del');
+        controls.append(up,down,edit,del);item.append(controls);list.append(item);
+      });
+      body.append(list);card.append(head,body);
+      const admin=makeNode('div','queue-manage operator-only');
+      const addForm=makeNode('form','queue-entry');addForm.dataset.queueForm=ev;
+      const input=makeNode('input');input.name='team';input.required=true;input.maxLength=30;
+      input.autocomplete='off';input.placeholder='팀 이름 / 참가자';input.setAttribute('aria-label',`${EVENT_NAMES[ev]} 대기 팀 이름`);
+      const addButton=makeNode('button','btn btn-main','대기 등록');addButton.type='submit';
+      addForm.append(input,addButton);admin.append(addForm);
+      const actions=makeNode('div','queue-actions');
+      const call=makeNode('button','btn','▶ 다음 팀 호출');call.type='button';call.disabled=!queue.waiting.length;
+      call.dataset.queueAction='call';call.dataset.queueEvent=ev;
+      const finish=makeNode('button','btn btn-quiet','✓ 진행 종료');finish.type='button';finish.disabled=!queue.active;
+      finish.dataset.queueAction='finish';finish.dataset.queueEvent=ev;
+      actions.append(call,finish);admin.append(actions);card.append(admin);grid.append(card);
+    }
+  }
   function switchEvent(next){
-    if(!Object.prototype.hasOwnProperty.call(EVENT_NAMES,next))return;
+    if(next!=='queue' && !Object.prototype.hasOwnProperty.call(EVENT_NAMES,next))return;
+    selectedView=next;
+    document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.event===next)));
+    const isQueue=next==='queue';
+    $('queueView').classList.toggle('hide',!isQueue);
+    $('rankView').classList.toggle('hide',isQueue);
+    $('rankStats').classList.toggle('hide',isQueue);
+    if(isQueue){
+      $('eventEyebrow').textContent='THREE EVENTS · ONE WAITING BOARD';
+      $('eventDescription').textContent='방탈출 · 스털링 엔진 레이스 · 해마토크릿의 현재 진행 팀과 대기 순서';
+      renderQueue();return;
+    }
     eventKey=next;editingId=null;resetManualForm();
-    document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.event===eventKey)));
     $('stopwatchName').value='';renderPrizeEditor();render();
   }
   function addRecord(name,value){
@@ -474,11 +616,64 @@
     try {
       if(file.size>2_000_000)throw Error('백업 파일이 너무 커.');
       const data=validateState(JSON.parse(await file.text()));
-      if(!confirm('현재 세 종목의 모든 기록과 상품 설정을 백업 내용으로 교체할까?'))return;
-      state=data;save();resetClock();resetManualForm();renderPrizeEditor();render();notify('백업을 불러왔어!');
+      if(!confirm('현재 세 종목의 기록·상품·대기 명단을 백업 내용으로 교체할까?'))return;
+      state=data;save();resetClock();resetManualForm();renderPrizeEditor();render();renderQueue();notify('백업을 불러왔어!');
     } catch(e){notify(e.message||'백업 파일을 확인할 수 없어.');}
     finally{$('importFile').value=''}
   }
+  $('queueGrid').addEventListener('submit',e=>{
+    const form=e.target.closest('[data-queue-form]');if(!form)return;
+    e.preventDefault();const ev=form.dataset.queueForm;
+    const name=form.elements.team.value.trim();
+    if(!name || name.length>30){notify('팀 이름을 1~30자로 입력해 줘.');return}
+    const queue=state.queues[ev];
+    if([queue.active,...queue.waiting].some(r=>r&&r.name.toLocaleLowerCase()===name.toLocaleLowerCase())){
+      notify('이 종목의 대기/진행 명단에 같은 이름이 있어.');return;
+    }
+    queue.waiting.push({id:makeId(),name,createdAt:new Date().toISOString()});
+    save();renderQueue();
+    const newInput=$('queueGrid').querySelector(`[data-queue-form="${ev}"] input`);
+    if(newInput)newInput.focus();
+    notify(`${EVENT_NAMES[ev]} · ${name} 대기 등록!`);
+  });
+  $('queueGrid').addEventListener('click',e=>{
+    const button=e.target.closest('[data-queue-action]');if(!button)return;
+    const {queueAction:action,queueEvent:ev,queueId:id}=button.dataset;
+    if(!Object.hasOwn(state.queues,ev))return;
+    const queue=state.queues[ev];
+    const index=queue.waiting.findIndex(x=>x.id===id);
+    if(action==='call'){
+      if(!queue.waiting.length)return;
+      queue.active=queue.waiting.shift();
+      notify(`${EVENT_NAMES[ev]} · ${queue.active.name} 팀 호출!`);
+    }else if(action==='finish'){
+      if(!queue.active)return;
+      const name=queue.active.name;queue.active=null;
+      notify(`${name} 팀 진행 종료!`);
+    }else if(action==='up'||action==='down'){
+      if(index<0)return;
+      const to=index+(action==='up'?-1:1);
+      if(to<0||to>=queue.waiting.length)return;
+      [queue.waiting[index],queue.waiting[to]]=[queue.waiting[to],queue.waiting[index]];
+    }else if(action==='remove'){
+      if(index<0)return;
+      const name=queue.waiting[index].name;
+      if(!confirm(`「${name}」을(를) ${EVENT_NAMES[ev]} 대기 명단에서 삭제할까?`))return;
+      queue.waiting.splice(index,1);notify('대기 명단에서 삭제했어.');
+    }else if(action==='rename'){
+      if(index<0)return;
+      const previous=queue.waiting[index].name;
+      const entered=prompt('새 팀 이름을 입력해 줘.',previous);
+      if(entered===null)return;
+      const name=entered.trim();
+      if(!name||name.length>30){notify('팀 이름을 1~30자로 입력해 줘.');return}
+      if([queue.active,...queue.waiting].some(r=>r&&r.id!==id&&r.name.toLocaleLowerCase()===name.toLocaleLowerCase())){
+        notify('이미 등록된 팀 이름이야.');return;
+      }
+      queue.waiting[index].name=name;
+    }else{return}
+    save();renderQueue();
+  });
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchEvent(b.dataset.event)));
   $('timerStart').addEventListener('click',startClock);
   $('timerPause').addEventListener('click',pauseClock);
@@ -524,6 +719,14 @@
     catch(e){notify('이 브라우저에서는 전체화면을 지원하지 않을 수 있어.')}
   });
   document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent=document.fullscreenElement?'⛶ 전체화면 해제':'⛶ 전체화면'});
+  window.addEventListener('storage',e=>{
+    if(e.key!==STORAGE_KEY)return;
+    try{state=e.newValue?validateState(JSON.parse(e.newValue)):defaultState();
+      if(selectedView!=='queue')render();
+      renderPrizeEditor();renderQueue();
+      notify('같은 브라우저의 다른 탭에서 변경한 내용을 반영했어.');
+    }catch(err){console.warn('동기화 실패:',err)}
+  });
   switchEvent('escape');tick();
 })();
 </script>
