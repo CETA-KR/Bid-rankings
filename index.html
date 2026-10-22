@@ -128,7 +128,7 @@
     @media(max-width:1100px){.layout{grid-template-columns:minmax(0,1fr) 320px}.panel{padding:18px}.side .panel{padding:18px}.podium{gap:7px}}
     @media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.side .panel{margin:0}.side .panel:first-child{grid-row:span 2}.hero{display:block}.tabs{margin-top:24px}.stats{margin:18px 0}.presentation .side{display:none}}
     @media(max-width:590px){.app{width:calc(100% - 28px);padding:20px 0 45px}.topbar{margin-bottom:30px}.top-actions{width:100%;justify-content:space-between}.live{margin-right:auto}.top-actions .btn{font-size:12px;padding:9px 10px}
-      h1{letter-spacing:-1.5px}.subtitle{font-size:13px}.tabs{width:100%}.tab{width:50%;padding:13px 7px;font-size:13px}.stats{gap:8px}.stat{padding:14px 12px}.stat .label{font-size:11px}.stat strong{font-size:20px}.stat small{font-size:10px}.podium{gap:6px;min-height:195px}.podium-card{padding:11px 5px;min-height:156px}.podium-card.first{min-height:194px}.podium-card.third{min-height:147px}.medal{width:44px;height:44px;font-size:21px;margin-bottom:9px}.podium-rank{font-size:10px;margin-bottom:8px}.podium-name{font-size:12px}.podium-time{font-size:13px}.podium-prize{font-size:10px}.panel-title{font-size:17px}.side{display:block}.side .panel{margin-bottom:15px}.presentation .podium-card{min-height:180px}.presentation .podium-card.first{min-height:220px}.presentation .podium-card.third{min-height:166px}.presentation .podium-name{font-size:14px}.presentation .podium-time{font-size:15px}}
+      h1{letter-spacing:-1.5px}.subtitle{font-size:13px}.tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}.tab{width:auto;min-width:0;white-space:normal;padding:13px 7px;font-size:13px}.tab:last-child{grid-column:1/-1}.stats{gap:8px}.stat{padding:14px 12px}.stat .label{font-size:11px}.stat strong{font-size:20px}.stat small{font-size:10px}.podium{gap:6px;min-height:195px}.podium-card{padding:11px 5px;min-height:156px}.podium-card.first{min-height:194px}.podium-card.third{min-height:147px}.medal{width:44px;height:44px;font-size:21px;margin-bottom:9px}.podium-rank{font-size:10px;margin-bottom:8px}.podium-name{font-size:12px}.podium-time{font-size:13px}.podium-prize{font-size:10px}.panel-title{font-size:17px}.side{display:block}.side .panel{margin-bottom:15px}.presentation .podium-card{min-height:180px}.presentation .podium-card.first{min-height:220px}.presentation .podium-card.third{min-height:166px}.presentation .podium-name{font-size:14px}.presentation .podium-time{font-size:15px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
   </style>
 </head>
@@ -145,26 +145,27 @@
 
   <section class="hero">
     <div>
-      <div class="eyebrow">THE FASTEST TEAM WINS</div>
+      <div class="eyebrow" id="eventEyebrow">THE FASTEST TEAM WINS</div>
       <h1>실험실 <em>챌린지</em></h1>
-      <p class="subtitle"><span id="eventDescription">잠긴 실험실을 가장 빨리 탈출한 팀은?</span> 기록이 등록되면 순위와 상품이 자동으로 업데이트돼.</p>
+      <p class="subtitle" id="eventDescription">잠긴 실험실을 가장 빨리 탈출한 팀은?</p>
     </div>
     <div class="tabs" role="tablist" aria-label="종목 선택">
       <button class="tab" data-event="escape" role="tab" aria-selected="true">🔐 방탈출</button>
       <button class="tab" data-event="stirling" role="tab" aria-selected="false">⚙️ 스털링 엔진 레이스</button>
+      <button class="tab" data-event="hematocrit" role="tab" aria-selected="false">🩸 해마토크릿</button>
     </div>
   </section>
 
   <section class="stats" aria-label="경기 통계">
     <div class="stat"><div class="label">참가 팀</div><strong id="teamCount">0</strong><small>현재 종목 기준</small></div>
-    <div class="stat"><div class="label">최고 기록</div><strong class="highlight" id="bestTime">--:--.--</strong><small>가장 짧은 시간</small></div>
+    <div class="stat"><div class="label">최고 기록</div><strong class="highlight" id="bestTime">--:--.--</strong><small id="recordCriterion">가장 짧은 시간</small></div>
     <div class="stat"><div class="label">현재 선두</div><strong id="leaderName">-</strong><small>실시간 1위</small></div>
   </section>
 
   <div class="layout">
     <main class="left">
       <section class="panel" aria-labelledby="podiumTitle">
-        <div class="panel-heading"><h2 class="panel-title" id="podiumTitle">명예의 TOP 3</h2><span class="panel-sub">순위 기준 · 소요 시간 ↑</span></div>
+        <div class="panel-heading"><h2 class="panel-title" id="podiumTitle">명예의 TOP 3</h2><span class="panel-sub" id="rankingRule">순위 기준 · 소요 시간 ↑</span></div>
         <div id="podium" class="podium"></div>
       </section>
       <section class="panel" aria-labelledby="rankTitle">
@@ -178,7 +179,8 @@
 
     <aside class="side operator-only" aria-label="진행요원용 관리 도구">
       <section class="panel">
-        <div class="panel-heading"><h2 class="panel-title">⏱ 스톱워치</h2><span class="panel-sub">진행요원 전용</span></div>
+        <div class="panel-heading"><h2 class="panel-title" id="entryHeading">⏱ 스톱워치</h2><span class="panel-sub">진행요원 전용</span></div>
+        <div id="stopwatchControls">
         <div class="clock" id="timerDisplay" aria-label="스톱워치 시간">00:00.00</div>
         <div class="clock-buttons">
           <button class="btn btn-main" type="button" id="timerStart">시작</button>
@@ -189,17 +191,18 @@
         <button id="saveTimerBtn" type="button" class="btn btn-main full">이 시간으로 기록 등록</button>
         <p class="tip">스톱워치를 정지하지 않아도 등록할 수 있어. 등록하면 해당 시점의 기록이 저장되고 타이머가 초기화돼.</p>
         <div class="divider"></div>
-        <h3 style="font-size:16px;margin:0 0 16px">수동 기록 입력</h3>
+        </div>
+        <h3 id="manualHeading" style="font-size:16px;margin:0 0 16px">수동 기록 입력</h3>
         <label class="field"><span>팀 이름 / 닉네임</span><input id="manualName" maxlength="30" autocomplete="off" placeholder="예: 효소 탐정단"></label>
-        <label class="field"><span>소요 시간</span><input id="manualTime" inputmode="decimal" autocomplete="off" placeholder="예: 02:35.42 또는 155.42"></label>
+        <label class="field"><span id="manualValueLabel">소요 시간</span><input id="manualTime" inputmode="decimal" autocomplete="off" placeholder="예: 02:35.42 또는 155.42"></label>
         <button id="manualSaveBtn" type="button" class="btn full">기록 직접 추가</button>
         <button id="cancelEditBtn" type="button" class="btn btn-quiet full hide" style="margin-top:8px">수정 취소</button>
-        <p class="tip">분:초.소수점 또는 초.소수점 형식으로 입력하면 돼. 예: 01:20.50 = 80.5초.</p>
+        <p class="tip" id="manualHelp">분:초.소수점 또는 초.소수점 형식으로 입력하면 돼. 예: 01:20.50 = 80.5초.</p>
       </section>
       <section class="panel">
         <div class="panel-heading"><h2 class="panel-title">🎁 순위별 상품</h2><span class="panel-sub">종목별 개별 설정</span></div>
         <div id="prizeFields"></div>
-        <p class="tip">상품 이름을 수정하면 리더보드에도 바로 반영돼. 동시간 기록은 공동 순위로 처리해.</p>
+        <p class="tip">기록이 같으면 공동 순위로 처리해. 해마토크릿은 높은 % 순서로 정렬돼.</p>
       </section>
       <section class="panel">
         <div class="panel-heading"><h2 class="panel-title">⚙ 기록 관리</h2></div>
@@ -221,11 +224,11 @@
 (() => {
   'use strict';
   const STORAGE_KEY = 'bid-festival-leaderboard-v1';
-  const EVENT_NAMES = {escape:'방탈출',stirling:'스털링 엔진 레이스'};
+  const EVENT_NAMES = {escape:'방탈출',stirling:'스털링 엔진 레이스',hematocrit:'해마토크릿'};
   const defaultState = () => ({
-    version:1,
-    records:{escape:[],stirling:[]},
-    prizes:{escape:['1등 상품 입력','2등 상품 입력','3등 상품 입력'],stirling:['1등 상품 입력','2등 상품 입력','3등 상품 입력']}
+    version:2,
+    records:{escape:[],stirling:[],hematocrit:[]},
+    prizes:{escape:['1등 상품 입력','2등 상품 입력','3등 상품 입력'],stirling:['1등 상품 입력','2등 상품 입력','3등 상품 입력'],hematocrit:['1등 상품 입력','2등 상품 입력','3등 상품 입력']}
   });
   const $ = id => document.getElementById(id);
   let state = load();
@@ -249,15 +252,24 @@
     if(!input || typeof input !== 'object' || !input.records || !input.prizes) throw Error('올바르지 않은 백업 파일이야.');
     const clean = defaultState();
     for(const ev of Object.keys(EVENT_NAMES)){
-      if(!Array.isArray(input.records[ev])) throw Error('종목 기록을 읽을 수 없어.');
-      clean.records[ev] = input.records[ev].slice(0,5000).map(r=>{
-        if(!r || typeof r.name !== 'string' || !Number.isSafeInteger(r.ms) || r.ms <= 0 || r.ms > 86400000) return null;
-        const name = r.name.trim().slice(0,30);
+      // v1 파일에는 해마토크릿 데이터가 없으므로 빈 기록으로 가져와.
+      const sourceRecords = input.records[ev] ?? (ev==='hematocrit' ? [] : null);
+      const sourcePrizes = input.prizes[ev] ?? (ev==='hematocrit' ? clean.prizes.hematocrit : null);
+      if(!Array.isArray(sourceRecords)) throw Error('종목 기록을 읽을 수 없어.');
+      if(!Array.isArray(sourcePrizes)) throw Error('상품 설정을 읽을 수 없어.');
+      clean.records[ev] = sourceRecords.slice(0,5000).map(r=>{
+        if(!r || typeof r.name!=='string') return null;
+        const name=r.name.trim().slice(0,30);
         if(!name) return null;
-        return {id: String(r.id || makeId()),name,ms:r.ms,createdAt:typeof r.createdAt==='string'?r.createdAt:new Date().toISOString()};
+        const base={id:String(r.id||makeId()),name,createdAt:typeof r.createdAt==='string'?r.createdAt:new Date().toISOString()};
+        if(ev==='hematocrit'){
+          if(typeof r.pct!=='number' || !Number.isFinite(r.pct) || r.pct<0 || r.pct>100) return null;
+          return {...base,pct:Math.round(r.pct*100)/100};
+        }
+        if(!Number.isSafeInteger(r.ms) || r.ms<=0 || r.ms>86400000) return null;
+        return {...base,ms:r.ms};
       }).filter(Boolean);
-      if(!Array.isArray(input.prizes[ev])) throw Error('상품 설정을 읽을 수 없어.');
-      clean.prizes[ev] = [0,1,2].map(i=>String(input.prizes[ev][i] ?? `${i+1}등 상품 입력`).slice(0,35));
+      clean.prizes[ev]=[0,1,2].map(i=>String(sourcePrizes[i]??`${i+1}등 상품 입력`).slice(0,35));
     }
     return clean;
   }
@@ -286,14 +298,32 @@
     const ms=Math.round(seconds*100)*10;
     return ms>0 && ms<=86400000 ? ms : null;
   }
+  function formatPercent(pct){return `${pct.toFixed(2)}%`}
+  function formatRecord(record){return eventKey==='hematocrit'?formatPercent(record.pct):formatTime(record.ms)}
+  function parseRecord(value){
+    if(eventKey!=='hematocrit') return parseTime(value);
+    const numeric=value.trim().replace(/%$/, '').trim();
+    if(!/^\d{1,3}(?:\.\d{1,2})?$/.test(numeric)) return null;
+    const pct=Number(numeric);
+    return pct>=0 && pct<=100 ? Math.round(pct*100)/100 : null;
+  }
+  function isValidRecord(value){
+    return eventKey==='hematocrit'
+      ? typeof value==='number' && Number.isFinite(value) && value>=0 && value<=100
+      : Number.isSafeInteger(value) && value>0 && value<=86400000;
+  }
+  function score(record){return eventKey==='hematocrit'?record.pct:record.ms}
   function ranked(){
-    let lastMs=null,lastRank=0;
-    return [...state.records[eventKey]].sort((a,b)=>a.ms-b.ms || a.createdAt.localeCompare(b.createdAt))
-      .map((r,i)=>{
-        const rank=r.ms===lastMs?lastRank:i+1;
-        lastMs=r.ms;lastRank=rank;
-        return {...r,rank,prize:rank<=3?state.prizes[eventKey][rank-1]:'-'};
-      });
+    let lastScore=null,lastRank=0;
+    return [...state.records[eventKey]].sort((a,b)=>{
+      const diff=eventKey==='hematocrit'?b.pct-a.pct:a.ms-b.ms;
+      return diff || a.createdAt.localeCompare(b.createdAt);
+    }).map((r,i)=>{
+      const value=score(r);
+      const rank=value===lastScore?lastRank:i+1;
+      lastScore=value;lastRank=rank;
+      return {...r,rank,prize:rank<=3?state.prizes[eventKey][rank-1]:'-'};
+    });
   }
   function makeNode(tag, className, content){
     const node=document.createElement(tag);if(className)node.className=className;
@@ -305,10 +335,10 @@
     for(const position of [2,1,3]){
       const result=rows[position-1];
       const card=makeNode('div',`podium-card ${position===1?'first':position===3?'third':''}`);
-      card.append(makeNode('div','medal',position));
+      card.append(makeNode('div','medal',result?.rank||position));
       card.append(makeNode('div','podium-rank',`POSITION ${result?.rank || position}`));
       card.append(makeNode('div',result?'podium-name':'podium-name empty-name',result?.name||'아직 기록 없음'));
-      card.append(makeNode('div','podium-time',result?formatTime(result.ms):'--:--.--'));
+      card.append(makeNode('div','podium-time',result?formatRecord(result):(eventKey==='hematocrit'?'--.--%':'--:--.--')));
       card.append(makeNode('div','podium-prize',result?(result.rank<=3?`${result.rank}등 · ${result.prize}`:'참가상'):''));
       area.append(card);
     }
@@ -323,7 +353,7 @@
       const tr=makeNode('tr');
       tr.append(makeNode('td',`rank ${item.rank<=3?'top':''}`,`${item.rank}위`));
       tr.append(makeNode('td','team',item.name));
-      tr.append(makeNode('td','time',formatTime(item.ms)));
+      tr.append(makeNode('td','time',formatRecord(item)));
       const prizeTd=makeNode('td');
       if(item.rank<=3)prizeTd.append(makeNode('span','prize-pill',item.prize));
       else prizeTd.textContent='-';
@@ -336,14 +366,28 @@
   }
   function render(){
     const rows=ranked();
+    const hematocrit=eventKey==='hematocrit';
     $('teamCount').textContent=rows.length.toLocaleString('ko-KR');
-    $('bestTime').textContent=rows.length?formatTime(rows[0].ms):'--:--.--';
+    $('bestTime').textContent=rows.length?formatRecord(rows[0]):(hematocrit?'--.--%':'--:--.--');
     $('leaderName').textContent=rows.length?rows[0].name:'-';
     $('listCount').textContent=`${rows.length}개 기록`;
+    $('recordCriterion').textContent=hematocrit?'가장 높은 백분율':'가장 짧은 시간';
+    $('rankingRule').textContent=hematocrit?'순위 기준 · 백분율 ↓':'순위 기준 · 소요 시간 ↑';
+    $('eventEyebrow').textContent=hematocrit?'HEMATOCRIT PERCENTAGE CHALLENGE':'THE FASTEST TEAM WINS';
+    $('eventDescription').textContent={
+      escape:'잠긴 실험실을 가장 빨리 탈출한 팀은?',
+      stirling:'스털링 엔진 레이스 · 가장 빠른 완주 기록에 도전!',
+      hematocrit:'해마토크릿 챌린지 · 백분율 기준 기록 순위'
+    }[eventKey];
+    $('stopwatchControls').classList.toggle('hide',hematocrit);
+    $('entryHeading').textContent=hematocrit?'🩸 해마토크릿 기록':'⏱ 스톱워치';
+    $('manualHeading').textContent=hematocrit?'퍼센트 기록 입력':'수동 기록 입력';
+    $('manualValueLabel').textContent=hematocrit?'해마토크릿 (%)':'소요 시간';
+    $('manualTime').placeholder=hematocrit?'예: 42.50 또는 42.5%':'예: 02:35.42 또는 155.42';
+    $('manualHelp').textContent=hematocrit
+      ?'0~100% 사이의 수치를 입력해 줘. 소수점 아래 둘째 자리까지 입력 가능해.'
+      :'분:초.소수점 또는 초.소수점 형식으로 입력하면 돼. 예: 01:20.50 = 80.5초.';
     renderPodium(rows);renderTable(rows);
-    $('eventDescription').textContent=eventKey==='escape'
-      ?'잠긴 실험실을 가장 빨리 탈출한 팀은? 기록이 등록되면 순위와 상품이 자동으로 업데이트돼.'
-      :'엔진을 이용해 누가 가장 먼저 완주할까? 빠른 기록부터 순위를 매겨 보자.';
   }
   function renderPrizeEditor(){
     const container=$('prizeFields');container.replaceChildren();
@@ -360,50 +404,56 @@
   }
   function getElapsed(c){return c.elapsed+(c.running?performance.now()-c.startedAt:0)}
   function tick(){
-    const clock=clocks[eventKey];
+    const clock=clocks[eventKey] || clocks.escape;
     $('timerDisplay').textContent=formatTime(getElapsed(clock));
     $('timerDisplay').classList.toggle('is-running',clock.running);
     $('timerStart').disabled=clock.running;
     $('timerPause').disabled=!clock.running;
     raf=requestAnimationFrame(tick);
   }
-  function startClock(){const clock=clocks[eventKey];if(clock.running)return;clock.startedAt=performance.now();clock.running=true}
-  function pauseClock(){const clock=clocks[eventKey];if(!clock.running)return;clock.elapsed=getElapsed(clock);clock.running=false}
-  function resetClock(){const clock=clocks[eventKey];clock.running=false;clock.elapsed=0;clock.startedAt=0}
+  function startClock(){const clock=clocks[eventKey];if(!clock||clock.running)return;clock.startedAt=performance.now();clock.running=true}
+  function pauseClock(){const clock=clocks[eventKey];if(!clock||!clock.running)return;clock.elapsed=getElapsed(clock);clock.running=false}
+  function resetClock(){const clock=clocks[eventKey];if(!clock)return;clock.running=false;clock.elapsed=0;clock.startedAt=0}
   function switchEvent(next){
+    if(!Object.prototype.hasOwnProperty.call(EVENT_NAMES,next))return;
     eventKey=next;editingId=null;resetManualForm();
     document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.event===eventKey)));
     $('stopwatchName').value='';renderPrizeEditor();render();
   }
-  function addRecord(name,ms){
+  function addRecord(name,value){
     name=name.trim();
     if(!name || name.length>30){notify('팀 이름을 1~30자로 입력해 줘.');return false}
-    if(!Number.isSafeInteger(ms)||ms<=0||ms>86400000){notify('올바른 소요 시간을 입력해 줘.');return false}
+    if(!isValidRecord(value)){notify('올바른 기록을 입력해 줘.');return false}
+    const hematocrit=eventKey==='hematocrit';
+    const payload=hematocrit?{pct:value}:{ms:value};
     const existing=state.records[eventKey].find(x=>x.name.toLocaleLowerCase()===name.toLocaleLowerCase());
     if(existing){
-      if(ms>=existing.ms){notify('이미 같은 팀의 더 빠른 기록이 있어. 수정 버튼을 이용해 줘.');return false}
-      if(!confirm(`${name}의 기존 기록 ${formatTime(existing.ms)}을(를) 더 빠른 ${formatTime(ms)}(으)로 교체할까?`))return false;
-      existing.ms=ms;existing.createdAt=new Date().toISOString();
+      const better=hematocrit?value>existing.pct:value<existing.ms;
+      if(!better){notify(hematocrit?'같은 팀의 기록이 이미 있어. 수정 버튼을 이용해 줘.':'이미 같은 팀의 더 빠른 기록이 있어. 수정 버튼을 이용해 줘.');return false}
+      if(!confirm(`${name}의 기존 기록 ${formatRecord(existing)}을(를) ${hematocrit?formatPercent(value):formatTime(value)}(으)로 교체할까?`))return false;
+      Object.assign(existing,payload,{createdAt:new Date().toISOString()});
     } else {
-      state.records[eventKey].push({id:makeId(),name,ms,createdAt:new Date().toISOString()});
+      state.records[eventKey].push({id:makeId(),name,...payload,createdAt:new Date().toISOString()});
     }
-    save();render();notify(`${name} · ${formatTime(ms)} 기록 완료!`);return true;
+    save();render();notify(`${name} · ${hematocrit?formatPercent(value):formatTime(value)} 기록 완료!`);return true;
   }
   function resetManualForm(){
     $('manualName').value='';$('manualTime').value='';
     $('manualSaveBtn').textContent='기록 직접 추가';$('cancelEditBtn').classList.add('hide');editingId=null;
   }
   function saveManual(){
-    const name=$('manualName').value.trim(),ms=parseTime($('manualTime').value);
-    if(ms===null){notify('시간 형식을 확인해 줘. 예: 02:35.42');return}
+    const name=$('manualName').value.trim(),value=parseRecord($('manualTime').value);
+    if(value===null){notify(eventKey==='hematocrit'?'0~100% 사이의 기록을 입력해 줘.':'시간 형식을 확인해 줘. 예: 02:35.42');return}
     if(editingId){
       const entry=state.records[eventKey].find(x=>x.id===editingId);
       if(!entry){resetManualForm();notify('수정할 기록을 찾지 못했어.');return}
       if(!name||name.length>30){notify('팀 이름을 1~30자로 입력해 줘.');return}
       if(state.records[eventKey].some(x=>x.id!==editingId&&x.name.toLocaleLowerCase()===name.toLocaleLowerCase())){notify('이미 사용 중인 팀 이름이야.');return}
-      entry.name=name;entry.ms=ms;save();resetManualForm();render();notify('기록을 수정했어.');return;
+      entry.name=name;
+      if(eventKey==='hematocrit') entry.pct=value; else entry.ms=value;
+      save();resetManualForm();render();notify('기록을 수정했어.');return;
     }
-    if(addRecord(name,ms))resetManualForm();
+    if(addRecord(name,value))resetManualForm();
   }
   function download(filename, content, type){
     const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);
@@ -413,8 +463,9 @@
   function csvCell(str){const value=String(str); const safe=/^[=+\-@\t\r]/.test(value)?"'"+value:value; return `"${safe.replace(/"/g,'""')}"`}
   function saveCsv(){
     const rows=ranked();
-    const records=[['순위','종목','팀 이름','소요 시간','밀리초','상품'],
-      ...rows.map(r=>[r.rank,EVENT_NAMES[eventKey],r.name,formatTime(r.ms),r.ms,r.rank<=3?r.prize:''])];
+    const hematocrit=eventKey==='hematocrit';
+    const records=[['순위','종목','팀 이름',hematocrit?'측정 비율':'소요 시간',hematocrit?'백분율 (%)':'밀리초','상품'],
+      ...rows.map(r=>[r.rank,EVENT_NAMES[eventKey],r.name,formatRecord(r),hematocrit?r.pct:r.ms,r.rank<=3?r.prize:''])];
     const csv='\ufeff'+records.map(row=>row.map(csvCell).join(',')).join('\r\n');
     download(`BID_${eventKey}_leaderboard.csv`,csv,'text/csv;charset=utf-8');notify('CSV를 저장했어.');
   }
@@ -423,7 +474,7 @@
     try {
       if(file.size>2_000_000)throw Error('백업 파일이 너무 커.');
       const data=validateState(JSON.parse(await file.text()));
-      if(!confirm('현재 두 종목의 모든 기록과 상품 설정을 백업 내용으로 교체할까?'))return;
+      if(!confirm('현재 세 종목의 모든 기록과 상품 설정을 백업 내용으로 교체할까?'))return;
       state=data;save();resetClock();resetManualForm();renderPrizeEditor();render();notify('백업을 불러왔어!');
     } catch(e){notify(e.message||'백업 파일을 확인할 수 없어.');}
     finally{$('importFile').value=''}
@@ -431,8 +482,9 @@
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchEvent(b.dataset.event)));
   $('timerStart').addEventListener('click',startClock);
   $('timerPause').addEventListener('click',pauseClock);
-  $('timerReset').addEventListener('click',()=>{if(getElapsed(clocks[eventKey])>0&&!confirm('현재 스톱워치 시간을 초기화할까?'))return;resetClock()});
+  $('timerReset').addEventListener('click',()=>{if(clocks[eventKey]&&getElapsed(clocks[eventKey])>0&&!confirm('현재 스톱워치 시간을 초기화할까?'))return;resetClock()});
   $('saveTimerBtn').addEventListener('click',()=>{
+    if(eventKey==='hematocrit')return;
     const c=clocks[eventKey],ms=Math.floor(getElapsed(c)/10)*10;
     if(addRecord($('stopwatchName').value,ms)){resetClock();$('stopwatchName').value=''}
   });
@@ -443,13 +495,13 @@
     const edit=e.target.closest('[data-edit-id]'),del=e.target.closest('[data-delete-id]');
     if(edit){
       const item=state.records[eventKey].find(x=>x.id===edit.dataset.editId);if(!item)return;
-      editingId=item.id;$('manualName').value=item.name;$('manualTime').value=formatTime(item.ms);
+      editingId=item.id;$('manualName').value=item.name;$('manualTime').value=eventKey==='hematocrit'?String(item.pct):formatTime(item.ms);
       $('manualSaveBtn').textContent='수정 내용 저장';$('cancelEditBtn').classList.remove('hide');
       $('manualName').focus();$('manualName').scrollIntoView({behavior:'smooth',block:'center'});
     }
     if(del){
       const item=state.records[eventKey].find(x=>x.id===del.dataset.deleteId);if(!item)return;
-      if(!confirm(`「${item.name}」의 ${formatTime(item.ms)} 기록을 삭제할까?`))return;
+      if(!confirm(`「${item.name}」의 ${formatRecord(item)} 기록을 삭제할까?`))return;
       state.records[eventKey]=state.records[eventKey].filter(x=>x.id!==item.id);
       if(editingId===item.id)resetManualForm();save();render();notify('기록을 삭제했어.');
     }
